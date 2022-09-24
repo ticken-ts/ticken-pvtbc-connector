@@ -1,4 +1,4 @@
-package pvtbc
+package ticken_pvtbc_connector
 
 import (
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/cccallers"
