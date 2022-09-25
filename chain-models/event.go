@@ -1,4 +1,4 @@
-package onchain_models
+package chain_models
 
 import (
 	"container/list"

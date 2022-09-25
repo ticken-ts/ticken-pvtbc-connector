@@ -2,9 +2,9 @@ package cccallers
 
 import (
 	"encoding/json"
+	"github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/ccclient"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
-	"github.com/ticken-ts/ticken-pvtbc-connector/onchain-models"
 )
 
 const TickenEventChaincode = "ticken-event"
@@ -36,13 +36,13 @@ func NewTickenEventCaller(pc *peerconnector.PeerConnector, channelName string) (
 	return caller, nil
 }
 
-func (caller *TickenEventCaller) GetEvent(eventID string) (*onchain_models.Event, error) {
+func (caller *TickenEventCaller) GetEvent(eventID string) (*chain_models.Event, error) {
 	eventData, err := caller.querier.Query(EventCCGetFunction, eventID)
 	if err != nil {
 		return nil, err
 	}
 
-	event := new(onchain_models.Event)
+	event := new(chain_models.Event)
 
 	err = json.Unmarshal(eventData, &event)
 	if err != nil {

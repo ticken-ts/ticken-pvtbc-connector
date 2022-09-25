@@ -1,4 +1,4 @@
-package onchain_models
+package chain_models
 
 type Ticket struct {
 	TicketID string `json:"ticket_id"`
