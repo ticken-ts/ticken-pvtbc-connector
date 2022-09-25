@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/ccclient"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
+	"github.com/ticken-ts/ticken-pvtbc-connector/models"
 )
 
 const TickenTicketChaincode = "ticken-ticket"
@@ -38,13 +39,13 @@ func NewTickenTicketCaller(pc *peerconnector.PeerConnector, channelName string) 
 	return caller, nil
 }
 
-func (caller *TickenTicketCaller) IssueTicket(ticketID string, eventID string, section string, owner string) (*Ticket, error) {
+func (caller *TickenTicketCaller) IssueTicket(ticketID string, eventID string, section string, owner string) (*models.Ticket, error) {
 	data, err := caller.submiter.Submit(TicketCCIssueFunction, ticketID, eventID, section, owner)
 	if err != nil {
 		return nil, err
 	}
 
-	ticket := new(Ticket)
+	ticket := new(models.Ticket)
 	err = json.Unmarshal(data, &ticket)
 	if err != nil {
 		return nil, err
@@ -53,7 +54,7 @@ func (caller *TickenTicketCaller) IssueTicket(ticketID string, eventID string, s
 	return ticket, nil
 }
 
-func (caller *TickenTicketCaller) SignTicket(ticketID string, eventID string, signer string, signature []byte) (*Ticket, error) {
+func (caller *TickenTicketCaller) SignTicket(ticketID string, eventID string, signer string, signature []byte) (*models.Ticket, error) {
 	hexSignature := fmt.Sprintf("%x", signature)
 
 	data, err := caller.submiter.Submit(TicketCCSignFunction, ticketID, eventID, signer, hexSignature)
@@ -61,7 +62,7 @@ func (caller *TickenTicketCaller) SignTicket(ticketID string, eventID string, si
 		return nil, err
 	}
 
-	ticket := new(Ticket)
+	ticket := new(models.Ticket)
 	err = json.Unmarshal(data, &ticket)
 	if err != nil {
 		return nil, err
@@ -70,13 +71,13 @@ func (caller *TickenTicketCaller) SignTicket(ticketID string, eventID string, si
 	return ticket, nil
 }
 
-func (caller *TickenTicketCaller) ScanTicket(ticketID string, eventID string, owner string) (*Ticket, error) {
+func (caller *TickenTicketCaller) ScanTicket(ticketID string, eventID string, owner string) (*models.Ticket, error) {
 	data, err := caller.submiter.Submit(TicketCCScanFunction, ticketID, eventID, owner)
 	if err != nil {
 		return nil, err
 	}
 
-	ticket := new(Ticket)
+	ticket := new(models.Ticket)
 	err = json.Unmarshal(data, &ticket)
 	if err != nil {
 		return nil, err
