@@ -1,6 +1,7 @@
 package peerconnector
 
 import (
+	"context"
 	"crypto/x509"
 	"fmt"
 	"github.com/hyperledger/fabric-gateway/pkg/client"
@@ -71,6 +72,15 @@ func (hfc *PeerConnector) GetChaincode(channelName string, chaincodeName string)
 	}
 
 	return chaincode, nil
+}
+
+func (hfc *PeerConnector) GetChaincodeEvents(ctx context.Context, channelName string, chaincodeName string) (<-chan *client.ChaincodeEvent, error) {
+	network := hfc.gateway.GetNetwork(channelName)
+	if network == nil {
+		return nil, fmt.Errorf("channel %s not exist", channelName)
+	}
+
+	return network.ChaincodeEvents(ctx, chaincodeName)
 }
 
 // newIdentity creates a client identity for this

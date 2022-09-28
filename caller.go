@@ -14,7 +14,7 @@ type Caller struct {
 }
 
 func NewCaller(mspID string, certPath string, privatekeyPath string, peerEndpoint string, gatewayPeer string, tlsCertPath string) (*Caller, error) {
-	tickenConnector := new(Caller)
+	caller := new(Caller)
 
 	pc := peerconnector.New(mspID, certPath, privatekeyPath)
 
@@ -23,9 +23,9 @@ func NewCaller(mspID string, certPath string, privatekeyPath string, peerEndpoin
 		return nil, err
 	}
 
-	tickenConnector.pc = pc
+	caller.pc = pc
 
-	return tickenConnector, nil
+	return caller, nil
 }
 
 func (caller *Caller) SetChannel(channel string) error {
@@ -51,7 +51,7 @@ func (caller *Caller) SetChannel(channel string) error {
 	caller.TickenTicketCaller = tickenTicketCaller
 
 	// update channel to keep reference
-	// if it need to be changed
+	// if it needs to be changed
 	caller.channel = channel
 
 	return nil
