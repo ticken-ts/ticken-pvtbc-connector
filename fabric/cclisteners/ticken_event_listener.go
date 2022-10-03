@@ -24,6 +24,7 @@ func NewTickenEventListener(ctx context.Context, pc *peerconnector.PeerConnector
 	}
 
 	eventListener.listener = listener
+	eventListener.callbacks = make(map[string]func(event *chain_models.Event))
 
 	return eventListener, nil
 
