@@ -52,3 +52,26 @@ func (eventListener *TickenEventListener) ListenNewEvents(callback func(event *c
 	eventListener.listener.Listen("create", internalCallback)
 	return nil
 }
+
+func (eventListener *TickenEventListener) ListenEventModifications(callback func(event *chain_models.Event)) error {
+
+	_, exists := eventListener.callbacks["eventModified"]
+	if exists {
+		return fmt.Errorf("already listening to this event")
+	}
+
+	eventListener.callbacks["eventModified"] = callback
+
+	internalCallback := func(payload []byte) {
+		event := new(chain_models.Event)
+		err := json.Unmarshal(payload, event)
+		if err != nil {
+			panic(err)
+		}
+
+		callback(event)
+	}
+
+	eventListener.listener.Listen("eventModified", internalCallback)
+	return nil
+}
