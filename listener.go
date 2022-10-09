@@ -2,6 +2,7 @@ package ticken_pvtbc_connector
 
 import (
 	"context"
+	"fmt"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/cclisteners"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 )
@@ -14,19 +15,16 @@ type Listener struct {
 	channel string
 }
 
-func NewListener(mspID string, certPath string, privatekeyPath string, peerEndpoint string, gatewayPeer string, tlsCertPath string) (*Listener, error) {
-	listener := new(Listener)
-
-	pc := peerconnector.New(mspID, certPath, privatekeyPath)
-
-	err := pc.Connect(peerEndpoint, gatewayPeer, tlsCertPath)
-	if err != nil {
-		return nil, err
+func NewListener(pc *peerconnector.PeerConnector) (*Listener, error) {
+	if pc == nil {
+		return nil, fmt.Errorf("peer connection is nil")
 	}
 
-	listener.pc = pc
+	if !pc.IsConnected() {
+		return nil, fmt.Errorf("peer connection is not stablished")
+	}
 
-	return listener, nil
+	return &Listener{pc: pc}, nil
 }
 
 func (listener *Listener) SetChannel(ctx context.Context, channel string) error {
