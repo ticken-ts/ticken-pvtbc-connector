@@ -24,6 +24,7 @@ func NewListener(pc *peerconnector.PeerConnector, channelName string, chaincodeN
 	}
 
 	listener := new(Listener)
+	listener.pc = pc
 	listener.chaincode = chaincodeName
 
 	return listener, nil
