@@ -16,9 +16,9 @@ type TickenEventListener struct {
 	callbacks map[string]func(event *chain_models.Event)
 }
 
-func NewTickenEventListener(ctx context.Context, pc *peerconnector.PeerConnector, channel string) (*TickenEventListener, error) {
+func NewTickenEventListener(pc *peerconnector.PeerConnector, channel string) (*TickenEventListener, error) {
 	eventListener := new(TickenEventListener)
-	listener, err := ccclient.NewListener(ctx, pc, channel, TickenEventChaincode)
+	listener, err := ccclient.NewListener(pc, channel, TickenEventChaincode)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func NewTickenEventListener(ctx context.Context, pc *peerconnector.PeerConnector
 
 }
 
-func (eventListener *TickenEventListener) ListenNewEvents(callback func(event *chain_models.Event)) error {
+func (eventListener *TickenEventListener) ListenNewEvents(ctx context.Context, callback func(event *chain_models.Event)) error {
 
 	_, exists := eventListener.callbacks["create"]
 	if exists {
@@ -49,11 +49,11 @@ func (eventListener *TickenEventListener) ListenNewEvents(callback func(event *c
 		callback(event)
 	}
 
-	eventListener.listener.Listen("create", internalCallback)
+	eventListener.listener.Listen(ctx, "create", internalCallback)
 	return nil
 }
 
-func (eventListener *TickenEventListener) ListenEventModifications(callback func(event *chain_models.Event)) error {
+func (eventListener *TickenEventListener) ListenEventModifications(ctx context.Context, callback func(event *chain_models.Event)) error {
 
 	_, exists := eventListener.callbacks["eventModified"]
 	if exists {
@@ -72,6 +72,6 @@ func (eventListener *TickenEventListener) ListenEventModifications(callback func
 		callback(event)
 	}
 
-	eventListener.listener.Listen("eventModified", internalCallback)
+	eventListener.listener.Listen(ctx, "eventModified", internalCallback)
 	return nil
 }

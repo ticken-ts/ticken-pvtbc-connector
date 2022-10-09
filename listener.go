@@ -1,7 +1,6 @@
 package ticken_pvtbc_connector
 
 import (
-	"context"
 	"fmt"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/cclisteners"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
@@ -27,7 +26,7 @@ func NewListener(pc *peerconnector.PeerConnector) (*Listener, error) {
 	return &Listener{pc: pc}, nil
 }
 
-func (listener *Listener) SetChannel(ctx context.Context, channel string) error {
+func (listener *Listener) SetChannel(channel string) error {
 	if listener.channel == channel {
 		// optimization to avoid changing channel
 		// most of the peers will share the same
@@ -36,7 +35,7 @@ func (listener *Listener) SetChannel(ctx context.Context, channel string) error 
 		return nil
 	}
 
-	eventListener, err := cclisteners.NewTickenEventListener(ctx, listener.pc, channel)
+	eventListener, err := cclisteners.NewTickenEventListener(listener.pc, channel)
 	if err != nil {
 		return err
 	}
