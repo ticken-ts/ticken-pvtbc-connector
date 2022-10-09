@@ -3,13 +3,17 @@ package ccclient
 import (
 	"context"
 	"fmt"
+	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 )
 
+const initialEventsSize = 5
+
 type Listener struct {
-	pc        *peerconnector.PeerConnector
-	chaincode string
-	channel   string
+	pc           *peerconnector.PeerConnector
+	chaincode    string
+	channel      string
+	eventsChanns []<-chan *client.ChaincodeEvent
 }
 
 func NewListener(pc *peerconnector.PeerConnector, channelName string, chaincodeName string) (*Listener, error) {
@@ -26,18 +30,21 @@ func NewListener(pc *peerconnector.PeerConnector, channelName string, chaincodeN
 	listener := new(Listener)
 	listener.pc = pc
 	listener.chaincode = chaincodeName
+	listener.eventsChanns = []<-chan *client.ChaincodeEvent{}
 
 	return listener, nil
 }
 
 func (listener *Listener) Listen(ctx context.Context, eventType string, callback func([]byte)) {
-	events, err := listener.pc.GetChaincodeEvents(ctx, listener.channel, listener.chaincode)
+	eventsChann, err := listener.pc.GetChaincodeEvents(ctx, listener.channel, listener.chaincode)
 	if err != nil {
 		panic(err)
 	}
 
+	listener.eventsChanns = append(listener.eventsChanns, eventsChann)
+
 	go func() {
-		for event := range events {
+		for event := range eventsChann {
 			if event.EventName == eventType {
 				callback(event.Payload)
 			}
