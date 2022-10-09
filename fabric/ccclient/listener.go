@@ -29,6 +29,7 @@ func NewListener(pc *peerconnector.PeerConnector, channelName string, chaincodeN
 
 	listener := new(Listener)
 	listener.pc = pc
+	listener.channel = channelName
 	listener.chaincode = chaincodeName
 	listener.eventsChanns = []<-chan *client.ChaincodeEvent{}
 
