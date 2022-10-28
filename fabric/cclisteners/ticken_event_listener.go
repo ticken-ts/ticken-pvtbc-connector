@@ -3,7 +3,6 @@ package cclisteners
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	chain_models "github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/ccclient"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
@@ -12,66 +11,80 @@ import (
 const TickenEventChaincode = "ticken-event"
 
 type TickenEventListener struct {
-	listener  *ccclient.Listener
-	callbacks map[string]func(event *chain_models.Event)
+	listener *ccclient.Listener
+	callback func(notification *CCEventNotification)
+}
+
+type EventNotificationType string
+
+const (
+	EventCreatedNotification EventNotificationType = "event-created"
+	SectionAddedNotification EventNotificationType = "section-added"
+)
+
+type CCEventNotification struct {
+	BlockNum uint64
+	TxID     string
+	Type     EventNotificationType
+	Payload  *chain_models.Event
 }
 
 func NewTickenEventListener(pc *peerconnector.PeerConnector, channel string) (*TickenEventListener, error) {
 	eventListener := new(TickenEventListener)
+
 	listener, err := ccclient.NewListener(pc, channel, TickenEventChaincode)
 	if err != nil {
 		return nil, err
 	}
 
 	eventListener.listener = listener
-	eventListener.callbacks = make(map[string]func(event *chain_models.Event))
+	eventListener.callback = nil
 
 	return eventListener, nil
 
 }
 
-func (eventListener *TickenEventListener) ListenNewEvents(ctx context.Context, callback func(event *chain_models.Event)) error {
+func (eventListener *TickenEventListener) Listen(ctx context.Context, callback func(notification *CCEventNotification)) error {
+	eventListener.callback = callback
 
-	_, exists := eventListener.callbacks["create"]
-	if exists {
-		return fmt.Errorf("already listening to this event")
-	}
-
-	eventListener.callbacks["create"] = callback
-
-	internalCallback := func(payload []byte) {
+	internalCallback := func(notification *ccclient.CCNotification) {
 		event := new(chain_models.Event)
-		err := json.Unmarshal(payload, event)
+		err := json.Unmarshal(notification.Payload, event)
 		if err != nil {
 			panic(err)
 		}
 
-		callback(event)
+		notificationType := stringToNotificationType(notification.Type)
+
+		// if we can not identify the notification type,
+		// we just are going to skip the notification
+		// processing
+		if len(notificationType) == 0 {
+			return
+		}
+
+		eventNotification := &CCEventNotification{
+			Type:     notificationType,
+			TxID:     notification.TxID,
+			BlockNum: notification.BlockNum,
+			Payload:  event,
+		}
+
+		eventListener.callback(eventNotification)
 	}
 
-	eventListener.listener.Listen(ctx, "create", internalCallback)
+	eventListener.listener.Listen(ctx, internalCallback)
 	return nil
 }
 
-func (eventListener *TickenEventListener) ListenEventModifications(ctx context.Context, callback func(event *chain_models.Event)) error {
-
-	_, exists := eventListener.callbacks["eventModified"]
-	if exists {
-		return fmt.Errorf("already listening to this event")
+func stringToNotificationType(s string) EventNotificationType {
+	if s == string(EventCreatedNotification) {
+		return EventCreatedNotification
 	}
 
-	eventListener.callbacks["eventModified"] = callback
-
-	internalCallback := func(payload []byte) {
-		event := new(chain_models.Event)
-		err := json.Unmarshal(payload, event)
-		if err != nil {
-			panic(err)
-		}
-
-		callback(event)
+	if s == string(SectionAddedNotification) {
+		return SectionAddedNotification
 	}
 
-	eventListener.listener.Listen(ctx, "eventModified", internalCallback)
-	return nil
+	return ""
 }

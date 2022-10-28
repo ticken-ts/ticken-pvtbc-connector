@@ -7,13 +7,20 @@ import (
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 )
 
+type CCNotification struct {
+	BlockNum uint64
+	TxID     string
+	Type     string
+	Payload  []byte
+}
+
 const initialEventsSize = 5
 
 type Listener struct {
-	pc           *peerconnector.PeerConnector
-	chaincode    string
-	channel      string
-	eventsChanns []<-chan *client.ChaincodeEvent
+	pc            *peerconnector.PeerConnector
+	chaincode     string
+	channel       string
+	notifications <-chan *client.ChaincodeEvent
 }
 
 func NewListener(pc *peerconnector.PeerConnector, channelName string, chaincodeName string) (*Listener, error) {
@@ -29,26 +36,33 @@ func NewListener(pc *peerconnector.PeerConnector, channelName string, chaincodeN
 
 	listener := new(Listener)
 	listener.pc = pc
+
+	listener.notifications = nil
 	listener.channel = channelName
 	listener.chaincode = chaincodeName
-	listener.eventsChanns = []<-chan *client.ChaincodeEvent{}
 
 	return listener, nil
 }
 
-func (listener *Listener) Listen(ctx context.Context, eventType string, callback func([]byte)) {
-	eventsChann, err := listener.pc.GetChaincodeEvents(ctx, listener.channel, listener.chaincode)
+func (listener *Listener) Listen(ctx context.Context, callback func(notification *CCNotification)) {
+	notificationsChannel, err := listener.pc.GetChaincodeNotifications(ctx, listener.channel, listener.chaincode)
 	if err != nil {
 		panic(err)
 	}
 
-	listener.eventsChanns = append(listener.eventsChanns, eventsChann)
+	listener.notifications = notificationsChannel
 
 	go func() {
-		for event := range eventsChann {
-			if event.EventName == eventType {
-				callback(event.Payload)
+		for notification := range notificationsChannel {
+
+			ccnotification := &CCNotification{
+				Type:     notification.EventName,
+				TxID:     notification.TransactionID,
+				BlockNum: notification.BlockNumber,
+				Payload:  notification.Payload,
 			}
+
+			callback(ccnotification)
 		}
 	}()
 }
