@@ -2,8 +2,6 @@ package cclisteners
 
 import (
 	"context"
-	"encoding/json"
-	chain_models "github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/ccclient"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 )
@@ -26,7 +24,7 @@ type CCEventNotification struct {
 	BlockNum uint64
 	TxID     string
 	Type     EventNotificationType
-	Payload  *chain_models.Event
+	Payload  []byte
 }
 
 func NewTickenEventListener(pc *peerconnector.PeerConnector, channel string) (*TickenEventListener, error) {
@@ -44,16 +42,10 @@ func NewTickenEventListener(pc *peerconnector.PeerConnector, channel string) (*T
 
 }
 
-func (eventListener *TickenEventListener) Listen(ctx context.Context, callback func(notification *CCEventNotification)) error {
+func (eventListener *TickenEventListener) Listen(ctx context.Context, callback func(notification *CCEventNotification)) {
 	eventListener.callback = callback
 
 	internalCallback := func(notification *ccclient.CCNotification) {
-		event := new(chain_models.Event)
-		err := json.Unmarshal(notification.Payload, event)
-		if err != nil {
-			panic(err)
-		}
-
 		notificationType := stringToNotificationType(notification.Type)
 
 		// if we can not identify the notification type,
@@ -67,14 +59,13 @@ func (eventListener *TickenEventListener) Listen(ctx context.Context, callback f
 			Type:     notificationType,
 			TxID:     notification.TxID,
 			BlockNum: notification.BlockNum,
-			Payload:  event,
+			Payload:  notification.Payload,
 		}
 
 		eventListener.callback(eventNotification)
 	}
 
 	eventListener.listener.Listen(ctx, internalCallback)
-	return nil
 }
 
 func stringToNotificationType(s string) EventNotificationType {
