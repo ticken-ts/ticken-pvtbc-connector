@@ -6,6 +6,7 @@ import (
 
 type Section struct {
 	Name             string `json:"name"`
+	EventID          string `json:"event_id"`
 	TotalTickets     int    `json:"total_tickets"`
 	RemainingTickets int    `json:"remaining_tickets"`
 }
