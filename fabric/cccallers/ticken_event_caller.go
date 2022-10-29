@@ -5,6 +5,8 @@ import (
 	"github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/ccclient"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
+	"strconv"
+	"time"
 )
 
 const TickenEventChaincode = "ticken-event"
@@ -54,8 +56,8 @@ func (caller *TickenEventCaller) GetEvent(eventID string) (*chain_models.Event, 
 	return event, nil
 }
 
-func (caller *TickenEventCaller) CreateAsync(eventID string, name string, date string) error {
-	_, _, err := caller.submiter.SubmitAsync(EventCCCreateFunction, eventID, name, date)
+func (caller *TickenEventCaller) CreateAsync(eventID string, name string, date time.Time) error {
+	_, _, err := caller.submiter.SubmitAsync(EventCCCreateFunction, eventID, name, date.Format(time.RFC3339))
 	if err != nil {
 		return err
 	}
@@ -63,8 +65,8 @@ func (caller *TickenEventCaller) CreateAsync(eventID string, name string, date s
 	return nil
 }
 
-func (caller *TickenEventCaller) AddSectionAsync(eventID string, name string, date string) error {
-	_, _, err := caller.submiter.SubmitAsync(EventCCAddSectionFunction, eventID, name, date)
+func (caller *TickenEventCaller) AddSectionAsync(eventID string, name string, totalTickets int) error {
+	_, _, err := caller.submiter.SubmitAsync(EventCCAddSectionFunction, eventID, name, strconv.Itoa(totalTickets))
 	if err != nil {
 		return err
 	}
