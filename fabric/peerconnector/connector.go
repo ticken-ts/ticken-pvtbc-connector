@@ -26,6 +26,14 @@ func New(mspID string, certPath string, privateKeyPath string) *PeerConnector {
 	}
 }
 
+func NewWithRawCredentials(mspID string, cert []byte, privateKey []byte) *PeerConnector {
+	return &PeerConnector{
+		identity: newIdentityFromRawCert(cert, mspID),
+		sign:     newSignFromRawKey(privateKey),
+		gateway:  nil,
+	}
+}
+
 func (hfc *PeerConnector) IsConnected() bool {
 	return hfc.gateway != nil
 }
@@ -36,6 +44,36 @@ func (hfc *PeerConnector) Connect(peerEndpoint string, gatewayPeer string, tlsCe
 	}
 
 	grpcConn, err := newGrpcConnection(peerEndpoint, gatewayPeer, tlsCertPath)
+	if err != nil {
+		return err
+	}
+
+	gateway, err := client.Connect(
+		hfc.identity,
+		client.WithSign(hfc.sign),
+		client.WithClientConnection(grpcConn),
+
+		// Default timeouts for different gRPC calls
+		client.WithSubmitTimeout(5*time.Second),
+		client.WithEvaluateTimeout(5*time.Second),
+		client.WithEndorseTimeout(15*time.Second),
+		client.WithCommitStatusTimeout(1*time.Minute),
+	)
+	if err != nil {
+		return err
+	}
+
+	hfc.gateway = gateway
+
+	return nil
+}
+
+func (hfc *PeerConnector) ConnectWithRawTlsCert(peerEndpoint string, gatewayPeer string, tlsCert []byte) error {
+	if hfc.IsConnected() {
+		return fmt.Errorf("gateway is already connected")
+	}
+
+	grpcConn, err := newGrpcConnectionFromRawTlsCert(peerEndpoint, gatewayPeer, tlsCert)
 	if err != nil {
 		return err
 	}
@@ -83,27 +121,6 @@ func (hfc *PeerConnector) GetChaincodeNotifications(ctx context.Context, channel
 	return network.ChaincodeEvents(ctx, chaincodeName)
 }
 
-// newIdentity creates a client identity for this
-// Gateway connection using an X.509 certificate.
-func newIdentity(certPath string, mspID string) *identity.X509Identity {
-	certificatePEM, err := ioutil.ReadFile(certPath)
-	if err != nil {
-		panic(fmt.Errorf("failed to read certificate file: %w", err))
-	}
-
-	certificate, err := identity.CertificateFromPEM(certificatePEM)
-	if err != nil {
-		panic(err)
-	}
-
-	id, err := identity.NewX509Identity(mspID, certificate)
-	if err != nil {
-		panic(err)
-	}
-
-	return id
-}
-
 // newSign creates a function that generates a digital
 // signature from a message digest using a private key.
 func newSign(keyPath string) identity.Sign {
@@ -112,8 +129,11 @@ func newSign(keyPath string) identity.Sign {
 		panic(fmt.Errorf("failed to read private key file: %w", err))
 	}
 
-	// TODO -> Undestand this
-	privateKey, err := identity.PrivateKeyFromPEM(privateKeyPEM)
+	return newSignFromRawKey(privateKeyPEM)
+}
+
+func newSignFromRawKey(key []byte) identity.Sign {
+	privateKey, err := identity.PrivateKeyFromPEM(key)
 	if err != nil {
 		panic(err)
 	}
@@ -126,11 +146,58 @@ func newSign(keyPath string) identity.Sign {
 	return sign
 }
 
+// newIdentity creates a client identity for this
+// Gateway connection using an X.509 certificate.
+func newIdentity(certPath string, mspID string) *identity.X509Identity {
+	certificate, err := loadCertificate(certPath)
+	if err != nil {
+		panic(err)
+	}
+
+	id, err := identity.NewX509Identity(mspID, certificate)
+	if err != nil {
+		panic(err)
+	}
+
+	return id
+}
+
+func newIdentityFromRawCert(cert []byte, mspID string) *identity.X509Identity {
+	certificate, err := identity.CertificateFromPEM(cert)
+	if err != nil {
+		panic(err)
+	}
+
+	id, err := identity.NewX509Identity(mspID, certificate)
+	if err != nil {
+		panic(err)
+	}
+
+	return id
+}
+
+// newGrpcConnection creates the grpc connection
+// used to communicate with the peer.
 func newGrpcConnection(peerEndpoint string, gatewayPeer string, tlsCertPath string) (*grpc.ClientConn, error) {
 	certificate, err := loadCertificate(tlsCertPath)
 	if err != nil {
 		return nil, err
 	}
+
+	certPool := x509.NewCertPool()
+	certPool.AddCert(certificate)
+	transportCredentials := credentials.NewClientTLSFromCert(certPool, gatewayPeer)
+
+	connection, err := grpc.Dial(peerEndpoint, grpc.WithTransportCredentials(transportCredentials))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create gRPC connection: %w", err)
+	}
+
+	return connection, nil
+}
+
+func newGrpcConnectionFromRawTlsCert(peerEndpoint string, gatewayPeer string, tlsCert []byte) (*grpc.ClientConn, error) {
+	certificate, err := identity.CertificateFromPEM(tlsCert)
 
 	certPool := x509.NewCertPool()
 	certPool.AddCert(certificate)
