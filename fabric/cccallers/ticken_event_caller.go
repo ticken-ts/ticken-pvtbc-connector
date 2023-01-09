@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const TickenEventChaincode = "ticken-event"
+const TickenEventChaincode = "cc-event"
 
 const (
 	EventCCGetFunction        = "Get"

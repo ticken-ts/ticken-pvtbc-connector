@@ -8,7 +8,7 @@ import (
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 )
 
-const TickenTicketChaincode = "ticken-ticket"
+const TickenTicketChaincode = "cc-ticket"
 
 const (
 	TicketCCIssueFunction = "Issue"

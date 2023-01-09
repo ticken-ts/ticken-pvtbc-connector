@@ -6,7 +6,7 @@ import (
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 )
 
-const TickenEventChaincode = "ticken-event"
+const TickenEventChaincode = "cc-event"
 
 type TickenEventListener struct {
 	listener *ccclient.Listener
