@@ -60,7 +60,7 @@ func (caller *TickenEventCaller) CreateAsync(eventID uuid.UUID, name string, dat
 func (caller *TickenEventCaller) AddSectionAsync(eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) error {
 	_, _, err := caller.submiter.SubmitAsync(
 		EventCCAddSectionFunction,
-		eventID,
+		eventID.String(),
 		name,
 		strconv.Itoa(totalTickets),
 		fmt.Sprintf("%f", ticketPrice),
@@ -74,7 +74,7 @@ func (caller *TickenEventCaller) AddSectionAsync(eventID uuid.UUID, name string,
 }
 
 func (caller *TickenEventCaller) GetEvent(eventID uuid.UUID) (*chain_models.Event, error) {
-	eventData, err := caller.querier.Query(EventCCGetFunction, eventID)
+	eventData, err := caller.querier.Query(EventCCGetFunction, eventID.String())
 	if err != nil {
 		return nil, err
 	}
