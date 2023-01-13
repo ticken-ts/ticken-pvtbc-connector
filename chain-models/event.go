@@ -16,6 +16,7 @@ type Event struct {
 }
 
 type Section struct {
+	EventID      string  `json:"event_id"`
 	Name         string  `json:"name"`
 	TicketPrice  float64 `json:"ticket_price"`
 	TotalTickets int     `json:"total_tickets"`
