@@ -2,7 +2,9 @@ package cccallers
 
 import (
 	"encoding/json"
-	"github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
+	"fmt"
+	"github.com/google/uuid"
+	chain_models "github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/ccclient"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 	"strconv"
@@ -40,6 +42,37 @@ func NewTickenEventCaller(pc *peerconnector.PeerConnector, channelName string) (
 	return caller, nil
 }
 
+func (caller *TickenEventCaller) CreateAsync(eventID uuid.UUID, name string, date time.Time) error {
+	_, _, err := caller.submiter.SubmitAsync(
+		EventCCCreateFunction,
+		eventID.String(),
+		name,
+		date.Format(time.RFC3339),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (caller *TickenEventCaller) AddSectionAsync(eventID string, name string, totalTickets int, ticketPrice float64) error {
+	_, _, err := caller.submiter.SubmitAsync(
+		EventCCAddSectionFunction,
+		eventID,
+		name,
+		strconv.Itoa(totalTickets),
+		fmt.Sprintf("%f", ticketPrice),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (caller *TickenEventCaller) GetEvent(eventID string) (*chain_models.Event, error) {
 	eventData, err := caller.querier.Query(EventCCGetFunction, eventID)
 	if err != nil {
@@ -54,22 +87,4 @@ func (caller *TickenEventCaller) GetEvent(eventID string) (*chain_models.Event, 
 	}
 
 	return event, nil
-}
-
-func (caller *TickenEventCaller) CreateAsync(eventID string, name string, date time.Time) error {
-	_, _, err := caller.submiter.SubmitAsync(EventCCCreateFunction, eventID, name, date.Format(time.RFC3339))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (caller *TickenEventCaller) AddSectionAsync(eventID string, name string, totalTickets int) error {
-	_, _, err := caller.submiter.SubmitAsync(EventCCAddSectionFunction, eventID, name, strconv.Itoa(totalTickets))
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

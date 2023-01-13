@@ -3,6 +3,7 @@ module github.com/ticken-ts/ticken-pvtbc-connector
 go 1.18
 
 require (
+	github.com/google/uuid v1.1.2
 	github.com/hyperledger/fabric-gateway v1.1.0
 	google.golang.org/grpc v1.49.0
 )
