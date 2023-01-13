@@ -1,11 +1,12 @@
 package chain_models
 
 import (
+	"github.com/google/uuid"
 	"time"
 )
 
 type Event struct {
-	EventID  string     `json:"event_id"`
+	EventID  uuid.UUID  `json:"event_id"`
 	Name     string     `json:"name"`
 	Date     time.Time  `json:"date"`
 	Sections []*Section `json:"sections"`
@@ -16,9 +17,9 @@ type Event struct {
 }
 
 type Section struct {
-	EventID      string  `json:"event_id"`
-	Name         string  `json:"name"`
-	TicketPrice  float64 `json:"ticket_price"`
-	TotalTickets int     `json:"total_tickets"`
-	SoldTickets  int     `json:"sold_tickets"`
+	EventID      uuid.UUID `json:"event_id"`
+	Name         string    `json:"name"`
+	TicketPrice  float64   `json:"ticket_price"`
+	TotalTickets int       `json:"total_tickets"`
+	SoldTickets  int       `json:"sold_tickets"`
 }
