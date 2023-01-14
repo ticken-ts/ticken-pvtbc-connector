@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/ccclient"
+	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/config"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 )
-
-const TickenTicketChaincode = "cc-ticket"
 
 const (
 	TicketCCIssueFunction = "Issue"
@@ -22,12 +21,12 @@ type TickenTicketCaller struct {
 }
 
 func NewTickenTicketCaller(pc *peerconnector.PeerConnector, channelName string) (*TickenTicketCaller, error) {
-	submiter, err := ccclient.NewSubmiter(pc, channelName, TickenTicketChaincode)
+	submiter, err := ccclient.NewSubmiter(pc, channelName, config.TickenTicketChaincode)
 	if err != nil {
 		return nil, err
 	}
 
-	querier, err := ccclient.NewQuerier(pc, channelName, TickenTicketChaincode)
+	querier, err := ccclient.NewQuerier(pc, channelName, config.TickenTicketChaincode)
 	if err != nil {
 		return nil, err
 	}

@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
-	chain_models "github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
+	chainmodels "github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/ccclient"
+	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/config"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 	"strconv"
 	"time"
 )
-
-const TickenEventChaincode = "cc-event"
 
 const (
 	EventCCGetFunction        = "Get"
@@ -25,12 +24,12 @@ type TickenEventCaller struct {
 }
 
 func NewTickenEventCaller(pc *peerconnector.PeerConnector, channelName string) (*TickenEventCaller, error) {
-	submiter, err := ccclient.NewSubmiter(pc, channelName, TickenEventChaincode)
+	submiter, err := ccclient.NewSubmiter(pc, channelName, config.TickenEventChaincode)
 	if err != nil {
 		return nil, err
 	}
 
-	querier, err := ccclient.NewQuerier(pc, channelName, TickenEventChaincode)
+	querier, err := ccclient.NewQuerier(pc, channelName, config.TickenEventChaincode)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +41,7 @@ func NewTickenEventCaller(pc *peerconnector.PeerConnector, channelName string) (
 	return caller, nil
 }
 
-func (caller *TickenEventCaller) CreateAsync(eventID uuid.UUID, name string, date time.Time) error {
+func (caller *TickenEventCaller) CreateEventAsync(eventID uuid.UUID, name string, date time.Time) error {
 	_, _, err := caller.submiter.SubmitAsync(
 		EventCCCreateFunction,
 		eventID.String(),
@@ -73,13 +72,13 @@ func (caller *TickenEventCaller) AddSectionAsync(eventID uuid.UUID, name string,
 	return nil
 }
 
-func (caller *TickenEventCaller) GetEvent(eventID uuid.UUID) (*chain_models.Event, error) {
+func (caller *TickenEventCaller) GetEvent(eventID uuid.UUID) (*chainmodels.Event, error) {
 	eventData, err := caller.querier.Query(EventCCGetFunction, eventID.String())
 	if err != nil {
 		return nil, err
 	}
 
-	event := new(chain_models.Event)
+	event := new(chainmodels.Event)
 
 	err = json.Unmarshal(eventData, &event)
 	if err != nil {
