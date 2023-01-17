@@ -33,7 +33,7 @@ func (cc DevChaincodeAPI) SubmitTx(name string, args ...string) ([]byte, error) 
 	var payload []byte
 	var err error
 	var elemKey uuid.UUID
-	var notification string
+	var notification *client.ChaincodeEvent
 
 	switch cc.ChaincodeName() {
 	case consts.TickenTicketChaincode:
@@ -49,7 +49,7 @@ func (cc DevChaincodeAPI) SubmitTx(name string, args ...string) ([]byte, error) 
 	}
 
 	cc.storedElements[elemKey] = payload
-	cc.fakeNotificationsChannel <- notificationFrom(payload, notification, cc.name)
+	cc.fakeNotificationsChannel <- notification
 	return payload, nil
 }
 
@@ -76,7 +76,7 @@ func (cc DevChaincodeAPI) SubmitTxAsync(name string, args ...string) ([]byte, er
 // handleEventCCAPI decides based on the function name, how to mock the
 // operation, parsing the args correct and generating a similar output
 // based on what the real chaincode should respond
-func (cc DevChaincodeAPI) handleEventCCAPI(name string, args ...string) ([]byte, uuid.UUID, string, error) {
+func (cc DevChaincodeAPI) handleEventCCAPI(name string, args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
 	switch name {
 	case consts.EventCCCreateFunction:
 		return cc.handleEventCCCreateTx(args...)
@@ -85,28 +85,28 @@ func (cc DevChaincodeAPI) handleEventCCAPI(name string, args ...string) ([]byte,
 	case consts.EventCCGetFunction:
 		return cc.handleEventCCAddSectionTx(args...)
 	default:
-		return nil, uuid.Nil, "", fmt.Errorf("function not found")
+		return nil, uuid.Nil, nil, fmt.Errorf("function not found")
 	}
 }
 
-func (cc DevChaincodeAPI) handleEventCCGetTx(args ...string) ([]byte, uuid.UUID, string, error) {
+func (cc DevChaincodeAPI) handleEventCCGetTx(args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
 	if len(args) != 1 {
-		return nil, uuid.Nil, "", fmt.Errorf("wrong arg numbers: expected %d, obtained %d", 1, len(args))
+		return nil, uuid.Nil, nil, fmt.Errorf("wrong arg numbers: expected %d, obtained %d", 1, len(args))
 	}
 
 	eventID, _ := uuid.Parse(args[0])
 
 	eventBytes, exists := cc.storedElements[eventID]
 	if !exists {
-		return nil, uuid.Nil, "", fmt.Errorf("event with id %s doest not exist", eventID)
+		return nil, uuid.Nil, nil, fmt.Errorf("event with id %s doest not exist", eventID)
 	}
 
-	return eventBytes, eventID, "", nil
+	return eventBytes, eventID, nil, nil
 }
 
-func (cc DevChaincodeAPI) handleEventCCCreateTx(args ...string) ([]byte, uuid.UUID, string, error) {
+func (cc DevChaincodeAPI) handleEventCCCreateTx(args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
 	if len(args) != 3 {
-		return nil, uuid.Nil, "", fmt.Errorf("wrong arg numbers: expected %d, obtained %d", 3, len(args))
+		return nil, uuid.Nil, nil, fmt.Errorf("wrong arg numbers: expected %d, obtained %d", 3, len(args))
 	}
 
 	eventID, _ := uuid.Parse(args[0])
@@ -125,12 +125,14 @@ func (cc DevChaincodeAPI) handleEventCCCreateTx(args ...string) ([]byte, uuid.UU
 
 	eventBytes, _ := json.Marshal(ccEvent)
 
-	return eventBytes, eventID, consts.EventCreatedNotification, nil
+	notification := notificationFrom(eventBytes, consts.EventCreatedNotification, cc.name)
+
+	return eventBytes, eventID, notification, nil
 }
 
-func (cc DevChaincodeAPI) handleEventCCAddSectionTx(args ...string) ([]byte, uuid.UUID, string, error) {
+func (cc DevChaincodeAPI) handleEventCCAddSectionTx(args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
 	if len(args) != 4 {
-		return nil, uuid.Nil, "", fmt.Errorf("wrong arg numbers: expected %d, obtained %d", 4, len(args))
+		return nil, uuid.Nil, nil, fmt.Errorf("wrong arg numbers: expected %d, obtained %d", 4, len(args))
 	}
 
 	eventID, _ := uuid.Parse(args[0])
@@ -141,13 +143,13 @@ func (cc DevChaincodeAPI) handleEventCCAddSectionTx(args ...string) ([]byte, uui
 	eventBytes, exists := cc.storedElements[eventID]
 
 	if !exists {
-		return nil, uuid.Nil, "", fmt.Errorf("event with id %s not exists", eventID)
+		return nil, uuid.Nil, nil, fmt.Errorf("event with id %s not exists", eventID)
 	}
 
 	var event chainmodels.Event
 	err := json.Unmarshal(eventBytes, &event)
 	if err != nil {
-		return nil, uuid.Nil, "", err
+		return nil, uuid.Nil, nil, err
 	}
 
 	section := chainmodels.Section{
@@ -161,8 +163,11 @@ func (cc DevChaincodeAPI) handleEventCCAddSectionTx(args ...string) ([]byte, uui
 	event.Sections = append(event.Sections, &section)
 
 	eventBytes, _ = json.Marshal(event)
+	sectionBytes, _ := json.Marshal(section)
 
-	return eventBytes, eventID, consts.SectionAddedNotification, nil
+	notification := notificationFrom(sectionBytes, consts.SectionAddedNotification, cc.name)
+
+	return eventBytes, eventID, notification, nil
 }
 
 // notificationFrom generates a fake notification to send in
