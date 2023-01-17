@@ -16,33 +16,33 @@ import (
 	"time"
 )
 
-type PeerConnector struct {
+type CorePeerConnector struct {
 	identity *identity.X509Identity
 	sign     identity.Sign
 	gateway  *client.Gateway
 }
 
-func New(mspID string, certPath string, privateKeyPath string) *PeerConnector {
-	return &PeerConnector{
+func New(mspID string, certPath string, privateKeyPath string) PeerConnector {
+	return &CorePeerConnector{
 		identity: newIdentity(certPath, mspID),
 		sign:     newSign(privateKeyPath),
 		gateway:  nil,
 	}
 }
 
-func NewWithRawCredentials(mspID string, cert []byte, privateKey []byte) *PeerConnector {
-	return &PeerConnector{
+func NewWithRawCredentials(mspID string, cert []byte, privateKey []byte) PeerConnector {
+	return &CorePeerConnector{
 		identity: newIdentityFromRawCert(cert, mspID),
 		sign:     newSignFromRawKey(privateKey),
 		gateway:  nil,
 	}
 }
 
-func (hfc *PeerConnector) IsConnected() bool {
+func (hfc *CorePeerConnector) IsConnected() bool {
 	return hfc.gateway != nil
 }
 
-func (hfc *PeerConnector) Connect(peerEndpoint string, gatewayPeer string, tlsCertPath string) error {
+func (hfc *CorePeerConnector) Connect(peerEndpoint string, gatewayPeer string, tlsCertPath string) error {
 	if hfc.IsConnected() {
 		return fmt.Errorf("gateway is already connected")
 	}
@@ -72,7 +72,7 @@ func (hfc *PeerConnector) Connect(peerEndpoint string, gatewayPeer string, tlsCe
 	return nil
 }
 
-func (hfc *PeerConnector) ConnectWithRawTlsCert(peerEndpoint string, gatewayPeer string, tlsCert []byte) error {
+func (hfc *CorePeerConnector) ConnectWithRawTlsCert(peerEndpoint string, gatewayPeer string, tlsCert []byte) error {
 	if hfc.IsConnected() {
 		return fmt.Errorf("gateway is already connected")
 	}
@@ -102,21 +102,23 @@ func (hfc *PeerConnector) ConnectWithRawTlsCert(peerEndpoint string, gatewayPeer
 	return nil
 }
 
-func (hfc *PeerConnector) GetChaincode(channelName string, chaincodeName string) (*client.Contract, error) {
+func (hfc *CorePeerConnector) GetChaincode(channelName string, chaincodeName string) (Chaincode, error) {
 	network := hfc.gateway.GetNetwork(channelName)
 	if network == nil {
 		return nil, fmt.Errorf("channel %s not exist", channelName)
 	}
 
-	chaincode := network.GetContract(chaincodeName)
-	if chaincode == nil {
+	contract := network.GetContract(chaincodeName)
+	if contract == nil {
 		return nil, fmt.Errorf("chaincode %s not exist", chaincodeName)
 	}
 
-	return chaincode, nil
+	return NewCoreChaincodeAPI(contract), nil
 }
 
-func (hfc *PeerConnector) GetChaincodeNotifications(ctx context.Context, channelName string, chaincodeName string) (<-chan *client.ChaincodeEvent, error) {
+func (hfc *CorePeerConnector) GetChaincodeNotificationsChannel(
+	ctx context.Context, channelName string, chaincodeName string,
+) (<-chan *client.ChaincodeEvent, error) {
 	network := hfc.gateway.GetNetwork(channelName)
 	if network == nil {
 		return nil, fmt.Errorf("channel %s not exist", channelName)

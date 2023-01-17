@@ -3,33 +3,24 @@ package cclisteners
 import (
 	"context"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/ccclient"
-	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/config"
+	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/consts"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 )
 
+var validEventCCNotificationTypes = []string{
+	consts.EventCreatedNotification,
+	consts.SectionAddedNotification,
+}
+
 type TickenEventListener struct {
 	listener *ccclient.Listener
-	callback func(notification *CCEventNotification)
+	callback func(notification *ccclient.CCNotification)
 }
 
-type CCEventNotificationType string
-
-const (
-	EventCreatedNotification CCEventNotificationType = "event-created"
-	SectionAddedNotification CCEventNotificationType = "section-added"
-)
-
-type CCEventNotification struct {
-	BlockNum uint64
-	TxID     string
-	Type     CCEventNotificationType
-	Payload  []byte
-}
-
-func NewTickenEventListener(pc *peerconnector.PeerConnector, channel string) (*TickenEventListener, error) {
+func NewTickenEventListener(pc peerconnector.PeerConnector, channel string) (*TickenEventListener, error) {
 	eventListener := new(TickenEventListener)
 
-	listener, err := ccclient.NewListener(pc, channel, config.TickenEventChaincode)
+	listener, err := ccclient.NewListener(pc, channel, consts.TickenEventChaincode)
 	if err != nil {
 		return nil, err
 	}
@@ -41,40 +32,23 @@ func NewTickenEventListener(pc *peerconnector.PeerConnector, channel string) (*T
 
 }
 
-func (eventListener *TickenEventListener) ListenCCEvent(ctx context.Context, callback func(notification *CCEventNotification)) {
+func (eventListener *TickenEventListener) ListenCCEvent(ctx context.Context, callback func(notification *ccclient.CCNotification)) {
 	eventListener.callback = callback
 
 	internalCallback := func(notification *ccclient.CCNotification) {
-		notificationType := stringToEventNotificationType(notification.Type)
-
-		// if we can not identify the notification type,
-		// we just are going to skip the notification
-		// processing
-		if len(notificationType) == 0 {
-			return
+		if eventNotificationTypeIsValid(notification.Type) {
+			eventListener.callback(notification)
 		}
-
-		eventNotification := &CCEventNotification{
-			Type:     notificationType,
-			TxID:     notification.TxID,
-			BlockNum: notification.BlockNum,
-			Payload:  notification.Payload,
-		}
-
-		eventListener.callback(eventNotification)
 	}
 
 	eventListener.listener.Listen(ctx, internalCallback)
 }
 
-func stringToEventNotificationType(s string) CCEventNotificationType {
-	if s == string(EventCreatedNotification) {
-		return EventCreatedNotification
+func eventNotificationTypeIsValid(typeToCheck string) bool {
+	for _, notificationType := range validEventCCNotificationTypes {
+		if typeToCheck == notificationType {
+			return true
+		}
 	}
-
-	if s == string(SectionAddedNotification) {
-		return SectionAddedNotification
-	}
-
-	return ""
+	return false
 }

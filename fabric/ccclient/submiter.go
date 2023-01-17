@@ -2,15 +2,14 @@ package ccclient
 
 import (
 	"fmt"
-	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 )
 
 type Submiter struct {
-	chaincode *client.Contract
+	chaincode peerconnector.Chaincode
 }
 
-func NewSubmiter(pc *peerconnector.PeerConnector, channelName string, chaincodeName string) (*Submiter, error) {
+func NewSubmiter(pc peerconnector.PeerConnector, channelName string, chaincodeName string) (*Submiter, error) {
 	if !pc.IsConnected() {
 		return nil, fmt.Errorf("connection with peer is not stablished")
 	}
@@ -27,7 +26,7 @@ func NewSubmiter(pc *peerconnector.PeerConnector, channelName string, chaincodeN
 }
 
 func (submiter *Submiter) Submit(function string, args ...string) ([]byte, error) {
-	evaluateResult, err := submiter.chaincode.SubmitTransaction(function, args...)
+	evaluateResult, err := submiter.chaincode.SubmitTx(function, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -35,11 +34,11 @@ func (submiter *Submiter) Submit(function string, args ...string) ([]byte, error
 	return evaluateResult, nil
 }
 
-func (submiter *Submiter) SubmitAsync(function string, args ...string) ([]byte, *client.Commit, error) {
-	submitResult, commit, err := submiter.chaincode.SubmitAsync(function, client.WithArguments(args...))
+func (submiter *Submiter) SubmitAsync(function string, args ...string) ([]byte, error) {
+	submitResult, err := submiter.chaincode.SubmitTxAsync(function, args...)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return submitResult, commit, nil
+	return submitResult, nil
 }

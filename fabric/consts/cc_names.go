@@ -1,4 +1,4 @@
-package config
+package consts
 
 const (
 	TickenEventChaincode  = "cc-event"

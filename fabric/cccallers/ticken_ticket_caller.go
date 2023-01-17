@@ -5,14 +5,8 @@ import (
 	"fmt"
 	"github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/ccclient"
-	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/config"
+	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/consts"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
-)
-
-const (
-	TicketCCIssueFunction = "Issue"
-	TicketCCSignFunction  = "Sign"
-	TicketCCScanFunction  = "Scan"
 )
 
 type TickenTicketCaller struct {
@@ -20,13 +14,13 @@ type TickenTicketCaller struct {
 	querier  *ccclient.Querier
 }
 
-func NewTickenTicketCaller(pc *peerconnector.PeerConnector, channelName string) (*TickenTicketCaller, error) {
-	submiter, err := ccclient.NewSubmiter(pc, channelName, config.TickenTicketChaincode)
+func NewTickenTicketCaller(pc peerconnector.PeerConnector, channelName string) (*TickenTicketCaller, error) {
+	submiter, err := ccclient.NewSubmiter(pc, channelName, consts.TickenTicketChaincode)
 	if err != nil {
 		return nil, err
 	}
 
-	querier, err := ccclient.NewQuerier(pc, channelName, config.TickenTicketChaincode)
+	querier, err := ccclient.NewQuerier(pc, channelName, consts.TickenTicketChaincode)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +33,7 @@ func NewTickenTicketCaller(pc *peerconnector.PeerConnector, channelName string) 
 }
 
 func (caller *TickenTicketCaller) IssueTicket(ticketID string, eventID string, section string, owner string) (*chain_models.Ticket, error) {
-	data, err := caller.submiter.Submit(TicketCCIssueFunction, ticketID, eventID, section, owner)
+	data, err := caller.submiter.Submit(consts.TicketCCIssueFunction, ticketID, eventID, section, owner)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +50,7 @@ func (caller *TickenTicketCaller) IssueTicket(ticketID string, eventID string, s
 func (caller *TickenTicketCaller) SignTicket(ticketID string, eventID string, signer string, signature []byte) (*chain_models.Ticket, error) {
 	hexSignature := fmt.Sprintf("%x", signature)
 
-	data, err := caller.submiter.Submit(TicketCCSignFunction, ticketID, eventID, signer, hexSignature)
+	data, err := caller.submiter.Submit(consts.TicketCCSignFunction, ticketID, eventID, signer, hexSignature)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +65,7 @@ func (caller *TickenTicketCaller) SignTicket(ticketID string, eventID string, si
 }
 
 func (caller *TickenTicketCaller) ScanTicket(ticketID string, eventID string, owner string) (*chain_models.Ticket, error) {
-	data, err := caller.submiter.Submit(TicketCCScanFunction, ticketID, eventID, owner)
+	data, err := caller.submiter.Submit(consts.TicketCCScanFunction, ticketID, eventID, owner)
 	if err != nil {
 		return nil, err
 	}

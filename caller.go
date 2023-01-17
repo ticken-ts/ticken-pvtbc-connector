@@ -11,10 +11,10 @@ type Caller struct {
 	*cccallers.TickenTicketCaller
 
 	channel string
-	pc      *peerconnector.PeerConnector
+	pc      peerconnector.PeerConnector
 }
 
-func NewCaller(pc *peerconnector.PeerConnector) (*Caller, error) {
+func NewCaller(pc peerconnector.PeerConnector) (*Caller, error) {
 	if pc == nil {
 		return nil, fmt.Errorf("peer connection is nil")
 	}

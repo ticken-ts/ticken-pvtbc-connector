@@ -14,16 +14,14 @@ type CCNotification struct {
 	Payload  []byte
 }
 
-const initialEventsSize = 5
-
 type Listener struct {
-	pc            *peerconnector.PeerConnector
+	pc            peerconnector.PeerConnector
 	chaincode     string
 	channel       string
 	notifications <-chan *client.ChaincodeEvent
 }
 
-func NewListener(pc *peerconnector.PeerConnector, channelName string, chaincodeName string) (*Listener, error) {
+func NewListener(pc peerconnector.PeerConnector, channelName string, chaincodeName string) (*Listener, error) {
 	if !pc.IsConnected() {
 		return nil, fmt.Errorf("connection with peer is not stablished")
 	}
@@ -45,7 +43,12 @@ func NewListener(pc *peerconnector.PeerConnector, channelName string, chaincodeN
 }
 
 func (listener *Listener) Listen(ctx context.Context, callback func(notification *CCNotification)) {
-	notificationsChannel, err := listener.pc.GetChaincodeNotifications(ctx, listener.channel, listener.chaincode)
+	notificationsChannel, err := listener.pc.GetChaincodeNotificationsChannel(
+		ctx,
+		listener.channel,
+		listener.chaincode,
+	)
+
 	if err != nil {
 		panic(err)
 	}

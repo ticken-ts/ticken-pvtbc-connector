@@ -10,11 +10,11 @@ type Listener struct {
 	*cclisteners.TickenEventListener
 	*cclisteners.TickenTicketListener
 
-	pc      *peerconnector.PeerConnector
+	pc      peerconnector.PeerConnector
 	channel string
 }
 
-func NewListener(pc *peerconnector.PeerConnector) (*Listener, error) {
+func NewListener(pc peerconnector.PeerConnector) (*Listener, error) {
 	if pc == nil {
 		return nil, fmt.Errorf("peer connection is nil")
 	}

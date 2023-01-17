@@ -2,15 +2,14 @@ package ccclient
 
 import (
 	"fmt"
-	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 )
 
 type Querier struct {
-	chaincode *client.Contract
+	chaincode peerconnector.Chaincode
 }
 
-func NewQuerier(pc *peerconnector.PeerConnector, channelName string, chaincodeName string) (*Querier, error) {
+func NewQuerier(pc peerconnector.PeerConnector, channelName string, chaincodeName string) (*Querier, error) {
 	if !pc.IsConnected() {
 		return nil, fmt.Errorf("connection with peer is not stablished")
 	}
@@ -27,7 +26,7 @@ func NewQuerier(pc *peerconnector.PeerConnector, channelName string, chaincodeNa
 }
 
 func (querier *Querier) Query(function string, args ...string) ([]byte, error) {
-	evaluateResult, err := querier.chaincode.EvaluateTransaction(function, args...)
+	evaluateResult, err := querier.chaincode.EvaluateTx(function, args...)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to evaluate transaction: %w", err)

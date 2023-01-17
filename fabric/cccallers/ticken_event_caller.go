@@ -6,16 +6,10 @@ import (
 	"github.com/google/uuid"
 	chainmodels "github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/ccclient"
-	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/config"
+	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/consts"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 	"strconv"
 	"time"
-)
-
-const (
-	EventCCGetFunction        = "Get"
-	EventCCCreateFunction     = "Create"
-	EventCCAddSectionFunction = "AddSection"
 )
 
 type TickenEventCaller struct {
@@ -23,13 +17,13 @@ type TickenEventCaller struct {
 	querier  *ccclient.Querier
 }
 
-func NewTickenEventCaller(pc *peerconnector.PeerConnector, channelName string) (*TickenEventCaller, error) {
-	submiter, err := ccclient.NewSubmiter(pc, channelName, config.TickenEventChaincode)
+func NewTickenEventCaller(pc peerconnector.PeerConnector, channelName string) (*TickenEventCaller, error) {
+	submiter, err := ccclient.NewSubmiter(pc, channelName, consts.TickenEventChaincode)
 	if err != nil {
 		return nil, err
 	}
 
-	querier, err := ccclient.NewQuerier(pc, channelName, config.TickenEventChaincode)
+	querier, err := ccclient.NewQuerier(pc, channelName, consts.TickenEventChaincode)
 	if err != nil {
 		return nil, err
 	}
@@ -42,8 +36,8 @@ func NewTickenEventCaller(pc *peerconnector.PeerConnector, channelName string) (
 }
 
 func (caller *TickenEventCaller) CreateEventAsync(eventID uuid.UUID, name string, date time.Time) error {
-	_, _, err := caller.submiter.SubmitAsync(
-		EventCCCreateFunction,
+	_, err := caller.submiter.SubmitAsync(
+		consts.EventCCCreateFunction,
 		eventID.String(),
 		name,
 		date.Format(time.RFC3339),
@@ -57,8 +51,8 @@ func (caller *TickenEventCaller) CreateEventAsync(eventID uuid.UUID, name string
 }
 
 func (caller *TickenEventCaller) AddSectionAsync(eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) error {
-	_, _, err := caller.submiter.SubmitAsync(
-		EventCCAddSectionFunction,
+	_, err := caller.submiter.SubmitAsync(
+		consts.EventCCAddSectionFunction,
 		eventID.String(),
 		name,
 		strconv.Itoa(totalTickets),
@@ -73,7 +67,7 @@ func (caller *TickenEventCaller) AddSectionAsync(eventID uuid.UUID, name string,
 }
 
 func (caller *TickenEventCaller) GetEvent(eventID uuid.UUID) (*chainmodels.Event, error) {
-	eventData, err := caller.querier.Query(EventCCGetFunction, eventID.String())
+	eventData, err := caller.querier.Query(consts.EventCCGetFunction, eventID.String())
 	if err != nil {
 		return nil, err
 	}
