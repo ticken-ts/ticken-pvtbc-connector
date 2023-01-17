@@ -7,10 +7,13 @@ import (
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 )
 
-// this variable should be global because it must be shared between
+// this variables should be global because it must be shared between
 // all the instances of the dev connector to simulate the transactions
 // comes from the same connection
-var fakeNotificationChannel = make(chan *client.ChaincodeEvent)
+var (
+	storedElements          = make(map[uuid.UUID][]byte)
+	fakeNotificationChannel = make(chan *client.ChaincodeEvent)
+)
 
 type DevPeerConnector struct {
 	isConnected bool
@@ -31,7 +34,7 @@ func NewDev(mspID string, organizerUsername string) PeerConnector {
 		mspID:             mspID,
 		organizerUsername: organizerUsername,
 
-		storedElements:           make(map[uuid.UUID][]byte),
+		storedElements:           storedElements,
 		fakeNotificationsChannel: fakeNotificationChannel,
 	}
 }
