@@ -7,7 +7,7 @@ import (
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 )
 
-// this variables should be global because it must be shared between
+// these variables should be global because it must be shared between
 // all the instances of the dev connector to simulate the transactions
 // comes from the same connection
 var (
