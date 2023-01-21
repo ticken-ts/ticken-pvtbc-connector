@@ -35,35 +35,44 @@ func NewTickenEventCaller(pc peerconnector.PeerConnector, channelName string) (*
 	return caller, nil
 }
 
-func (caller *TickenEventCaller) CreateEventAsync(eventID uuid.UUID, name string, date time.Time) error {
-	_, err := caller.submiter.SubmitAsync(
+func (caller *TickenEventCaller) CreateEvent(eventID uuid.UUID, name string, date time.Time) (*chainmodels.Event, error) {
+	payload, err := caller.submiter.Submit(
 		consts.EventCCCreateFunction,
 		eventID.String(),
 		name,
 		date.Format(time.RFC3339),
 	)
-
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	event := new(chainmodels.Event)
+	err = json.Unmarshal(payload, &event)
+	if err := json.Unmarshal(payload, &event); err != nil {
+		return nil, err
+	}
+
+	return event, nil
 }
 
-func (caller *TickenEventCaller) AddSectionAsync(eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) error {
-	_, err := caller.submiter.SubmitAsync(
+func (caller *TickenEventCaller) AddSection(eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) (*chainmodels.Section, error) {
+	payload, err := caller.submiter.Submit(
 		consts.EventCCAddSectionFunction,
 		eventID.String(),
 		name,
 		strconv.Itoa(totalTickets),
 		fmt.Sprintf("%f", ticketPrice),
 	)
-
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	section := new(chainmodels.Section)
+	if err := json.Unmarshal(payload, &section); err != nil {
+		return nil, err
+	}
+
+	return section, nil
 }
 
 func (caller *TickenEventCaller) GetEvent(eventID uuid.UUID) (*chainmodels.Event, error) {
@@ -73,9 +82,7 @@ func (caller *TickenEventCaller) GetEvent(eventID uuid.UUID) (*chainmodels.Event
 	}
 
 	event := new(chainmodels.Event)
-
-	err = json.Unmarshal(eventData, &event)
-	if err != nil {
+	if err := json.Unmarshal(eventData, &event); err != nil {
 		return nil, err
 	}
 
