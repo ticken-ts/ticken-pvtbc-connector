@@ -37,7 +37,7 @@ func (cc DevChaincodeAPI) SubmitTx(name string, args ...string) ([]byte, error) 
 
 	switch cc.ChaincodeName() {
 	case consts.TickenTicketChaincode:
-		return nil, nil
+		payload, elemKey, notification, err = cc.handleTicketCCAPI(name, args...)
 	case consts.TickenEventChaincode:
 		payload, elemKey, notification, err = cc.handleEventCCAPI(name, args...)
 	default:
@@ -50,7 +50,8 @@ func (cc DevChaincodeAPI) SubmitTx(name string, args ...string) ([]byte, error) 
 
 	cc.storedElements[elemKey] = payload
 	if notification != nil {
-		cc.fakeNotificationsChannel <- notification
+		// avoid blocking when sending notification on the channel
+		go func() { cc.fakeNotificationsChannel <- notification }()
 	}
 	return payload, nil
 }
