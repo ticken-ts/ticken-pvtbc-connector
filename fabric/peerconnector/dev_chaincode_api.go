@@ -61,7 +61,7 @@ func (cc DevChaincodeAPI) EvaluateTx(name string, args ...string) ([]byte, error
 
 	switch cc.ChaincodeName() {
 	case consts.TickenTicketChaincode:
-		return nil, nil
+		payload, _, _, err = cc.handleTicketCCAPI(name, args...)
 	case consts.TickenEventChaincode:
 		payload, _, _, err = cc.handleEventCCAPI(name, args...)
 	default:
@@ -97,18 +97,35 @@ func (cc DevChaincodeAPI) handleEventCCAPI(name string, args ...string) ([]byte,
 func (cc DevChaincodeAPI) handleTicketCCAPI(name string, args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
 	switch name {
 	case consts.TicketCCIssueFunction:
-		return cc.handleEventCCCreateTx(args...)
-	case consts.EventCCAddSectionFunction:
-		return cc.handleEventCCAddSectionTx(args...)
-	case consts.EventCCGetFunction:
-		return cc.handleEventCCAddSectionTx(args...)
+		return cc.handleTicketCCIssueTx(args...)
 	default:
 		return nil, uuid.Nil, nil, fmt.Errorf("function not found")
 	}
 }
 
+// handleEventCCAddSectionTx issues a ticket
+// Issue args: (ticketID string, eventID string, section string, owner string)
 func (cc DevChaincodeAPI) handleTicketCCIssueTx(args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
-	return nil, uuid.Nil, nil, nil
+	ticketID := args[0]
+	ticketUUID, _ := uuid.Parse(ticketID)
+	eventID := args[1]
+	section := args[2]
+	owner := args[3]
+
+	ticket := &chainmodels.Ticket{
+		TicketID: ticketID,
+		EventID:  eventID,
+		Owner:    owner,
+		Section:  section,
+		Status:   "issued",
+	}
+
+	ticketBytes, err := json.Marshal(ticket)
+	if err != nil {
+		return nil, uuid.Nil, nil, err
+	}
+
+	return ticketBytes, ticketUUID, nil, nil
 }
 
 func (cc DevChaincodeAPI) handleEventCCGetTx(args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
