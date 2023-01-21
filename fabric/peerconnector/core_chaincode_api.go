@@ -11,7 +11,7 @@ func NewCoreChaincodeAPI(contract *client.Contract) Chaincode {
 }
 
 func (cc CoreChaincodeAPI) ChaincodeName() string {
-	return cc.ChaincodeName()
+	return cc.contract.ContractName()
 }
 
 func (cc CoreChaincodeAPI) SubmitTx(name string, args ...string) ([]byte, error) {
