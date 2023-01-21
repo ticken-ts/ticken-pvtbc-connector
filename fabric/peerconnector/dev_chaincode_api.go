@@ -49,7 +49,9 @@ func (cc DevChaincodeAPI) SubmitTx(name string, args ...string) ([]byte, error) 
 	}
 
 	cc.storedElements[elemKey] = payload
-	cc.fakeNotificationsChannel <- notification
+	if notification != nil {
+		cc.fakeNotificationsChannel <- notification
+	}
 	return payload, nil
 }
 
@@ -87,6 +89,26 @@ func (cc DevChaincodeAPI) handleEventCCAPI(name string, args ...string) ([]byte,
 	default:
 		return nil, uuid.Nil, nil, fmt.Errorf("function not found")
 	}
+}
+
+// handleTicketCCAPI decides based on the function name, how to mock the
+// operation, parsing the args correct and generating a similar output
+// based on what the real chaincode should respond
+func (cc DevChaincodeAPI) handleTicketCCAPI(name string, args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
+	switch name {
+	case consts.TicketCCIssueFunction:
+		return cc.handleEventCCCreateTx(args...)
+	case consts.EventCCAddSectionFunction:
+		return cc.handleEventCCAddSectionTx(args...)
+	case consts.EventCCGetFunction:
+		return cc.handleEventCCAddSectionTx(args...)
+	default:
+		return nil, uuid.Nil, nil, fmt.Errorf("function not found")
+	}
+}
+
+func (cc DevChaincodeAPI) handleTicketCCIssueTx(args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
+	return nil, uuid.Nil, nil, nil
 }
 
 func (cc DevChaincodeAPI) handleEventCCGetTx(args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
