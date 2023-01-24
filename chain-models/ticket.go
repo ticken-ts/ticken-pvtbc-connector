@@ -1,9 +1,15 @@
 package chain_models
 
+import "github.com/google/uuid"
+
 type Ticket struct {
-	TicketID string `json:"ticket_id"`
-	EventID  string `json:"event_id"`
-	Owner    string `json:"owner"`
-	Section  string `json:"section"`
-	Status   string `json:"status"`
+	TicketID uuid.UUID `json:"ticket_id"`
+	Status   string    `json:"status"`
+
+	EventID uuid.UUID `json:"event_id"`
+	Section string    `json:"section"`
+
+	// represents the owner id in the
+	// web service database
+	OwnerID uuid.UUID `json:"owner"`
 }

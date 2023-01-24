@@ -36,23 +36,24 @@ func NewTickenEventCaller(pc peerconnector.PeerConnector, channelName string) (*
 }
 
 func (caller *TickenEventCaller) CreateEvent(eventID uuid.UUID, name string, date time.Time) (*chainmodels.Event, error) {
-	payload, err := caller.submiter.Submit(
-		consts.EventCCCreateFunction,
-		eventID.String(),
-		name,
-		date.Format(time.RFC3339),
-	)
+	function := consts.EventCCCreateFunction
+	payload, err := caller.submiter.Submit(function, eventID.String(), name, date.Format(time.RFC3339))
 	if err != nil {
 		return nil, err
 	}
 
 	event := new(chainmodels.Event)
-	err = json.Unmarshal(payload, &event)
 	if err := json.Unmarshal(payload, &event); err != nil {
 		return nil, err
 	}
 
 	return event, nil
+}
+
+func (caller *TickenEventCaller) SetEventOnSale(eventID uuid.UUID) error {
+	function := consts.EventCCSetEventOnSaleFunction
+	_, err := caller.submiter.Submit(function, eventID.String())
+	return err
 }
 
 func (caller *TickenEventCaller) AddSection(eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) (*chainmodels.Section, error) {
@@ -76,7 +77,7 @@ func (caller *TickenEventCaller) AddSection(eventID uuid.UUID, name string, tota
 }
 
 func (caller *TickenEventCaller) GetEvent(eventID uuid.UUID) (*chainmodels.Event, error) {
-	eventData, err := caller.querier.Query(consts.EventCCGetFunction, eventID.String())
+	eventData, err := caller.querier.Query(consts.EventCCGetEventFunction, eventID.String())
 	if err != nil {
 		return nil, err
 	}

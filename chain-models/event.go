@@ -11,6 +11,10 @@ type Event struct {
 	Date     time.Time  `json:"date"`
 	Sections []*Section `json:"sections"`
 
+	// indicates if the event is currently
+	// available to sell tickets
+	OnSale bool `json:"on_sale"`
+
 	// identity of the event and auditory
 	MSPID             string `json:"msp_id"`
 	OrganizerUsername string `json:"organizer_username"`

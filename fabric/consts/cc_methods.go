@@ -1,13 +1,13 @@
 package consts
 
 const (
-	TicketCCIssueFunction = "Issue"
-	TicketCCSignFunction  = "Sign"
-	TicketCCScanFunction  = "Scan"
+	TicketCCIssueFunction     = "Issue"
+	TicketCCGetTicketFunction = "GetTicket"
 )
 
 const (
-	EventCCGetFunction        = "Get"
-	EventCCCreateFunction     = "Create"
-	EventCCAddSectionFunction = "AddSection"
+	EventCCCreateFunction         = "Create"
+	EventCCGetEventFunction       = "GetEvent"
+	EventCCAddSectionFunction     = "AddSection"
+	EventCCSetEventOnSaleFunction = "SetEventOnSale"
 )
