@@ -18,7 +18,10 @@ type PeerConnector interface {
 
 type Chaincode interface {
 	ChaincodeName() string
-	SubmitTx(name string, args ...string) ([]byte, error)
+	SubmitTx(name string, args ...string) ([]byte, string, error)
 	EvaluateTx(name string, args ...string) ([]byte, error)
-	SubmitTxAsync(name string, args ...string) ([]byte, error)
+	SubmitTxAsync(name string, args ...string) ([]byte, string, error)
+}
+
+type Transaction interface {
 }
