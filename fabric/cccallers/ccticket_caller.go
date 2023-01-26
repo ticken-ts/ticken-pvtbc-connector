@@ -34,7 +34,7 @@ func NewTickenTicketCaller(pc peerconnector.PeerConnector, channelName string) (
 
 func (caller *TickenTicketCaller) IssueTicket(ticketID, eventID, owner uuid.UUID, section string) (*chainmodels.Ticket, error) {
 	function := consts.TicketCCIssueFunction
-	data, err := caller.submiter.Submit(function, ticketID.String(), eventID.String(), section, owner.String())
+	data, _, err := caller.submiter.Submit(function, ticketID.String(), eventID.String(), section, owner.String())
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (caller *TickenTicketCaller) IssueTicket(ticketID, eventID, owner uuid.UUID
 
 func (caller *TickenTicketCaller) GetTicket(ticketID uuid.UUID) (*chainmodels.Ticket, error) {
 	function := consts.TicketCCGetTicketFunction
-	data, err := caller.submiter.Submit(function, ticketID.String())
+	data, _, err := caller.submiter.Submit(function, ticketID.String())
 	if err != nil {
 		return nil, err
 	}

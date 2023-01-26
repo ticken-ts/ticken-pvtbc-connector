@@ -37,7 +37,7 @@ func NewTickenEventCaller(pc peerconnector.PeerConnector, channelName string) (*
 
 func (caller *TickenEventCaller) CreateEvent(eventID uuid.UUID, name string, date time.Time) (*chainmodels.Event, error) {
 	function := consts.EventCCCreateFunction
-	payload, err := caller.submiter.Submit(function, eventID.String(), name, date.Format(time.RFC3339))
+	payload, _, err := caller.submiter.Submit(function, eventID.String(), name, date.Format(time.RFC3339))
 	if err != nil {
 		return nil, err
 	}
@@ -52,12 +52,12 @@ func (caller *TickenEventCaller) CreateEvent(eventID uuid.UUID, name string, dat
 
 func (caller *TickenEventCaller) SetEventOnSale(eventID uuid.UUID) error {
 	function := consts.EventCCSetEventOnSaleFunction
-	_, err := caller.submiter.Submit(function, eventID.String())
+	_, _, err := caller.submiter.Submit(function, eventID.String())
 	return err
 }
 
 func (caller *TickenEventCaller) AddSection(eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) (*chainmodels.Section, error) {
-	payload, err := caller.submiter.Submit(
+	payload, _, err := caller.submiter.Submit(
 		consts.EventCCAddSectionFunction,
 		eventID.String(),
 		name,
