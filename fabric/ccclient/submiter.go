@@ -25,20 +25,20 @@ func NewSubmiter(pc peerconnector.PeerConnector, channelName string, chaincodeNa
 	return chaincodeSubmiter, nil
 }
 
-func (submiter *Submiter) Submit(function string, args ...string) ([]byte, error) {
-	evaluateResult, err := submiter.chaincode.SubmitTx(function, args...)
+func (submiter *Submiter) Submit(function string, args ...string) ([]byte, string, error) {
+	evaluateResult, txID, err := submiter.chaincode.SubmitTx(function, args...)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return evaluateResult, nil
+	return evaluateResult, txID, nil
 }
 
-func (submiter *Submiter) SubmitAsync(function string, args ...string) ([]byte, error) {
-	submitResult, err := submiter.chaincode.SubmitTxAsync(function, args...)
+func (submiter *Submiter) SubmitAsync(function string, args ...string) ([]byte, string, error) {
+	submitResult, txID, err := submiter.chaincode.SubmitTxAsync(function, args...)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return submitResult, nil
+	return submitResult, txID, nil
 }
