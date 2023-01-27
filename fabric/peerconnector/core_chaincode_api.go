@@ -30,7 +30,7 @@ func (cc CoreChaincodeAPI) SubmitTx(name string, args ...string) ([]byte, string
 	}
 
 	if !status.Successful {
-		return nil, "", txError(status.TransactionID, status.Code)
+		return nil, "", txError(status.TransactionID, status.Code, string(result))
 	}
 
 	return result, commit.TransactionID(), nil
@@ -45,8 +45,9 @@ func (cc CoreChaincodeAPI) SubmitTxAsync(name string, args ...string) ([]byte, s
 	return result, commit.TransactionID(), err
 }
 
-func txError(transactionID string, code peer.TxValidationCode) error {
+func txError(transactionID string, code peer.TxValidationCode, errMsg string) error {
 	return fmt.Errorf(
-		"transaction %s failed to commit with status code %d (%s)",
-		transactionID, int32(code), peer.TxValidationCode_name[int32(code)])
+		"transaction %s failed to commit with status code %d (%s): %s",
+		transactionID, int32(code), peer.TxValidationCode_name[int32(code)], errMsg,
+	)
 }
