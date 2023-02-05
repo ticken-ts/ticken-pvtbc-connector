@@ -39,12 +39,12 @@ func (caller *TickenTicketCaller) IssueTicket(ticketID, eventID, owner uuid.UUID
 		return nil, err
 	}
 
-	ticket := new(chainmodels.Ticket)
+	var ticket chainmodels.Ticket
 	if err := json.Unmarshal(data, &ticket); err != nil {
 		return nil, err
 	}
 
-	return ticket, nil
+	return &ticket, nil
 }
 
 func (caller *TickenTicketCaller) GetTicket(ticketID uuid.UUID) (*chainmodels.Ticket, error) {
@@ -54,10 +54,25 @@ func (caller *TickenTicketCaller) GetTicket(ticketID uuid.UUID) (*chainmodels.Ti
 		return nil, err
 	}
 
-	ticket := new(chainmodels.Ticket)
+	var ticket chainmodels.Ticket
 	if err := json.Unmarshal(data, &ticket); err != nil {
 		return nil, err
 	}
 
-	return ticket, nil
+	return &ticket, nil
+}
+
+func (caller *TickenTicketCaller) GetSectionTickets(section string) ([]*chainmodels.Ticket, error) {
+	function := consts.TicketCCGetSectionTicketsFunction
+	data, _, err := caller.submiter.Submit(function, section)
+	if err != nil {
+		return nil, err
+	}
+
+	var sectionTickets []*chainmodels.Ticket
+	if err := json.Unmarshal(data, &sectionTickets); err != nil {
+		return nil, err
+	}
+
+	return sectionTickets, nil
 }

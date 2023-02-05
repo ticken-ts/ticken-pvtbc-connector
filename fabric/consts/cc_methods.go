@@ -1,8 +1,9 @@
 package consts
 
 const (
-	TicketCCIssueFunction     = "Issue"
-	TicketCCGetTicketFunction = "GetTicket"
+	TicketCCIssueFunction             = "Issue"
+	TicketCCGetTicketFunction         = "GetTicket"
+	TicketCCGetSectionTicketsFunction = "GetSectionTickets"
 )
 
 const (

@@ -11,7 +11,7 @@ import (
 // all the instances of the dev connector to simulate the transactions
 // comes from the same connection
 var (
-	storedElements          = make(map[uuid.UUID][]byte)
+	storedElements          = make(map[string]map[uuid.UUID][]byte)
 	fakeNotificationChannel = make(chan *client.ChaincodeEvent)
 )
 
@@ -23,11 +23,18 @@ type DevPeerConnector struct {
 	organizerUsername string
 
 	// internal mocked storage
-	storedElements           map[uuid.UUID][]byte
+	storedElements           map[string]map[uuid.UUID][]byte
 	fakeNotificationsChannel chan *client.ChaincodeEvent
 }
 
 func NewDev(mspID string, organizerUsername string) PeerConnector {
+	for _, elementName := range []string{eventElementName, ticketElementName} {
+		_, elementStorageExists := storedElements[elementName]
+		if !elementStorageExists {
+			storedElements[elementName] = make(map[uuid.UUID][]byte)
+		}
+	}
+
 	return &DevPeerConnector{
 		isConnected: false,
 

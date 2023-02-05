@@ -11,6 +11,11 @@ import (
 	"time"
 )
 
+const (
+	eventElementName  = "event"
+	ticketElementName = "ticket"
+)
+
 type DevChaincodeAPI struct {
 	name    string
 	channel string
@@ -21,7 +26,9 @@ type DevChaincodeAPI struct {
 	ctxMSPID             string
 	ctxOrganizerUsername string
 
-	storedElements           map[uuid.UUID][]byte
+	// the first key is the element type. e.g: ticket/event
+	// the second key represents the id of the element
+	storedElements           map[string]map[uuid.UUID][]byte
 	fakeNotificationsChannel chan *client.ChaincodeEvent
 }
 
@@ -34,11 +41,14 @@ func (cc DevChaincodeAPI) SubmitTx(name string, args ...string) ([]byte, string,
 	var err error
 	var elemKey uuid.UUID
 	var notification *client.ChaincodeEvent
+	var elementName string
 
 	switch cc.ChaincodeName() {
 	case consts.TickenTicketChaincode:
+		elementName = eventElementName
 		payload, elemKey, notification, err = cc.handleTicketCCAPI(name, args...)
 	case consts.TickenEventChaincode:
+		elementName = ticketElementName
 		payload, elemKey, notification, err = cc.handleEventCCAPI(name, args...)
 	default:
 		return nil, "", fmt.Errorf("chaincode %s not exists", cc.ChaincodeName())
@@ -48,7 +58,7 @@ func (cc DevChaincodeAPI) SubmitTx(name string, args ...string) ([]byte, string,
 		return nil, "", err
 	}
 
-	cc.storedElements[elemKey] = payload
+	cc.storedElements[elementName][elemKey] = payload
 	if notification != nil {
 		// avoid blocking when sending notification on the channel
 		go func() { cc.fakeNotificationsChannel <- notification }()
@@ -106,6 +116,8 @@ func (cc DevChaincodeAPI) handleTicketCCAPI(name string, args ...string) ([]byte
 		return cc.handleTicketCCIssueTx(args...)
 	case consts.TicketCCGetTicketFunction:
 		return cc.handleTicketCCGetTicketTx(args...)
+	case consts.TicketCCGetSectionTicketsFunction:
+		return cc.handleTicketCCGetSectionTicketsTx(args...)
 
 	default:
 		return nil, uuid.Nil, nil, fmt.Errorf("function not found")
@@ -145,12 +157,35 @@ func (cc DevChaincodeAPI) handleTicketCCGetTicketTx(args ...string) ([]byte, uui
 
 	ticketID, _ := uuid.Parse(args[0])
 
-	ticketBytes, exists := cc.storedElements[ticketID]
+	ticketBytes, exists := cc.storedElements[ticketElementName][ticketID]
 	if !exists {
 		return nil, uuid.Nil, nil, fmt.Errorf("ticket with id %s doest not exist", ticketID)
 	}
 
 	return ticketBytes, ticketID, nil, nil
+}
+
+func (cc DevChaincodeAPI) handleTicketCCGetSectionTicketsTx(args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
+	if len(args) != 1 {
+		return nil, uuid.Nil, nil, fmt.Errorf("wrong arg numbers: expected %d, obtained %d", 1, len(args))
+	}
+
+	section := args[0]
+
+	var sectionTickets [][]byte
+	var ticket chainmodels.Ticket
+	for _, ticketBytes := range cc.storedElements[ticketElementName] {
+		if err := json.Unmarshal(ticketBytes, &ticket); err != nil {
+			return nil, uuid.Nil, nil, err
+		}
+		if ticket.Section == section {
+			sectionTickets = append(sectionTickets, ticketBytes)
+		}
+	}
+
+	sectionTicketsSerialized, _ := json.Marshal(sectionTickets)
+
+	return sectionTicketsSerialized, uuid.Nil, nil, nil
 }
 
 func (cc DevChaincodeAPI) handleEventCCGetEventTx(args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
@@ -160,7 +195,7 @@ func (cc DevChaincodeAPI) handleEventCCGetEventTx(args ...string) ([]byte, uuid.
 
 	eventID, _ := uuid.Parse(args[0])
 
-	eventBytes, exists := cc.storedElements[eventID]
+	eventBytes, exists := cc.storedElements[eventElementName][eventID]
 	if !exists {
 		return nil, uuid.Nil, nil, fmt.Errorf("event with id %s doest not exist", eventID)
 	}
@@ -203,7 +238,7 @@ func (cc DevChaincodeAPI) handleEventCCSetEventOnSaleTx(args ...string) ([]byte,
 
 	eventID, _ := uuid.Parse(args[0])
 
-	eventBytes, exists := cc.storedElements[eventID]
+	eventBytes, exists := cc.storedElements[eventElementName][eventID]
 	if !exists {
 		return nil, uuid.Nil, nil, fmt.Errorf("event with id %s not exists", eventID)
 	}
@@ -234,7 +269,7 @@ func (cc DevChaincodeAPI) handleEventCCAddSectionTx(args ...string) ([]byte, uui
 	totalTickets, _ := strconv.Atoi(args[2])
 	ticketPrice, _ := strconv.ParseFloat(args[3], 64)
 
-	eventBytes, exists := cc.storedElements[eventID]
+	eventBytes, exists := cc.storedElements[eventElementName][eventID]
 
 	if !exists {
 		return nil, uuid.Nil, nil, fmt.Errorf("event with id %s not exists", eventID)
