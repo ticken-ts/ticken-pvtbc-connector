@@ -166,11 +166,12 @@ func (cc DevChaincodeAPI) handleTicketCCGetTicketTx(args ...string) ([]byte, uui
 }
 
 func (cc DevChaincodeAPI) handleTicketCCGetSectionTicketsTx(args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
-	if len(args) != 1 {
-		return nil, uuid.Nil, nil, fmt.Errorf("wrong arg numbers: expected %d, obtained %d", 1, len(args))
+	if len(args) != 2 {
+		return nil, uuid.Nil, nil, fmt.Errorf("wrong arg numbers: expected %d, obtained %d", 2, len(args))
 	}
 
-	section := args[0]
+	eventID, _ := uuid.Parse(args[0])
+	section := args[1]
 
 	var sectionTickets [][]byte
 	var ticket chainmodels.Ticket
@@ -178,7 +179,7 @@ func (cc DevChaincodeAPI) handleTicketCCGetSectionTicketsTx(args ...string) ([]b
 		if err := json.Unmarshal(ticketBytes, &ticket); err != nil {
 			return nil, uuid.Nil, nil, err
 		}
-		if ticket.Section == section {
+		if ticket.EventID == eventID && ticket.Section == section {
 			sectionTickets = append(sectionTickets, ticketBytes)
 		}
 	}

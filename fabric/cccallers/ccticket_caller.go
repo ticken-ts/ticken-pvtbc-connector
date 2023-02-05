@@ -62,9 +62,9 @@ func (caller *TickenTicketCaller) GetTicket(ticketID uuid.UUID) (*chainmodels.Ti
 	return &ticket, nil
 }
 
-func (caller *TickenTicketCaller) GetSectionTickets(section string) ([]*chainmodels.Ticket, error) {
+func (caller *TickenTicketCaller) GetSectionTickets(eventID uuid.UUID, section string) ([]*chainmodels.Ticket, error) {
 	function := consts.TicketCCGetSectionTicketsFunction
-	data, _, err := caller.submiter.Submit(function, section)
+	data, _, err := caller.submiter.Submit(function, eventID.String(), section)
 	if err != nil {
 		return nil, err
 	}
