@@ -233,8 +233,8 @@ func (cc DevChaincodeAPI) handleEventCCCreateTx(args ...string) ([]byte, uuid.UU
 }
 
 func (cc DevChaincodeAPI) handleEventCCSetEventOnSaleTx(args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
-	if len(args) != 3 {
-		return nil, uuid.Nil, nil, fmt.Errorf("wrong arg numbers: expected %d, obtained %d", 3, len(args))
+	if len(args) != 1 {
+		return nil, uuid.Nil, nil, fmt.Errorf("wrong arg numbers: expected %d, obtained %d", 1, len(args))
 	}
 
 	eventID, _ := uuid.Parse(args[0])
