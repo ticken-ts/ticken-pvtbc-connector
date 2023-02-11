@@ -45,10 +45,10 @@ func (cc DevChaincodeAPI) SubmitTx(name string, args ...string) ([]byte, string,
 
 	switch cc.ChaincodeName() {
 	case consts.TickenTicketChaincode:
-		elementName = eventElementName
+		elementName = ticketElementName
 		payload, elemKey, notification, err = cc.handleTicketCCAPI(name, args...)
 	case consts.TickenEventChaincode:
-		elementName = ticketElementName
+		elementName = eventElementName
 		payload, elemKey, notification, err = cc.handleEventCCAPI(name, args...)
 	default:
 		return nil, "", fmt.Errorf("chaincode %s not exists", cc.ChaincodeName())
