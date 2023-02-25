@@ -7,6 +7,7 @@ import (
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/ccclient"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/consts"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
+	"math/big"
 )
 
 type TickenTicketCaller struct {
@@ -32,9 +33,9 @@ func NewTickenTicketCaller(pc peerconnector.PeerConnector, channelName string) (
 	return caller, nil
 }
 
-func (caller *TickenTicketCaller) IssueTicket(ticketID, eventID, owner uuid.UUID, section string) (*chainmodels.Ticket, error) {
+func (caller *TickenTicketCaller) IssueTicket(ticketID, eventID, owner uuid.UUID, section string, tokenID *big.Int) (*chainmodels.Ticket, error) {
 	function := consts.TicketCCIssueFunction
-	data, _, err := caller.submiter.Submit(function, ticketID.String(), eventID.String(), section, owner.String())
+	data, _, err := caller.submiter.Submit(function, ticketID.String(), eventID.String(), section, owner.String(), tokenID.String())
 	if err != nil {
 		return nil, err
 	}

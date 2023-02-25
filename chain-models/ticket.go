@@ -12,8 +12,8 @@ type Ticket struct {
 	EventID uuid.UUID `json:"event_id"`
 	Section string    `json:"section"`
 
-	TokenID      big.Int `json:"token_id"`
-	ContractAddr string  `json:"contract_addr"`
+	TokenID      *big.Int `json:"token_id"`
+	ContractAddr string   `json:"contract_addr"`
 
 	// represents the owner id in the
 	// web service database

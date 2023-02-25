@@ -7,6 +7,7 @@ import (
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 	chainmodels "github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/consts"
+	"math/big"
 	"strconv"
 	"time"
 )
@@ -134,12 +135,16 @@ func (cc DevChaincodeAPI) handleTicketCCIssueTx(args ...string) ([]byte, uuid.UU
 	section := args[2]
 	ownerID, _ := uuid.Parse(args[3])
 
+	// Create TokenID as big.Int from args[4]
+	tokenID, _ := big.NewInt(0).SetString(args[4], 10)
+
 	ticket := &chainmodels.Ticket{
 		TicketID: ticketID,
 		EventID:  eventID,
 		OwnerID:  ownerID,
 		Section:  section,
 		Status:   "issued",
+		TokenID:  tokenID,
 	}
 
 	ticketBytes, err := json.Marshal(ticket)
