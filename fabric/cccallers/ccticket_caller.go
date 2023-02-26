@@ -35,7 +35,10 @@ func NewTickenTicketCaller(pc peerconnector.PeerConnector, channelName string) (
 
 func (caller *TickenTicketCaller) IssueTicket(ticketID, eventID, owner uuid.UUID, section string, tokenID *big.Int) (*chainmodels.Ticket, string, error) {
 	function := consts.TicketCCIssueFunction
-	data, txID, err := caller.submiter.Submit(function, ticketID.String(), eventID.String(), section, owner.String(), tokenID.String())
+	data, txID, err := caller.submiter.Submit(
+		function,
+		ticketID.String(), eventID.String(), section, owner.String(), tokenID.Text(16),
+	)
 	if err != nil {
 		return nil, "", err
 	}
