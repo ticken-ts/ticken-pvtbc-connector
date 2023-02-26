@@ -50,10 +50,10 @@ func (caller *TickenEventCaller) CreateEvent(eventID uuid.UUID, name string, dat
 	return event, txID, nil
 }
 
-func (caller *TickenEventCaller) SetEventOnSale(eventID uuid.UUID) (error, string) {
+func (caller *TickenEventCaller) SetEventOnSale(eventID uuid.UUID) (string, error) {
 	function := consts.EventCCSetEventOnSaleFunction
 	_, txID, err := caller.submiter.Submit(function, eventID.String())
-	return err, txID
+	return txID, err
 }
 
 func (caller *TickenEventCaller) AddSection(eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) (*chainmodels.Section, string, error) {
