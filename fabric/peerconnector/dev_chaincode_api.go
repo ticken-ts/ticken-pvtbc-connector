@@ -126,8 +126,8 @@ func (cc DevChaincodeAPI) handleTicketCCAPI(name string, args ...string) ([]byte
 }
 
 func (cc DevChaincodeAPI) handleTicketCCIssueTx(args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
-	if len(args) != 4 {
-		return nil, uuid.Nil, nil, fmt.Errorf("wrong arg numbers: expected %d, obtained %d", 1, len(args))
+	if len(args) != 5 {
+		return nil, uuid.Nil, nil, fmt.Errorf("wrong arg numbers: expected %d, obtained %d", 5, len(args))
 	}
 
 	ticketID, _ := uuid.Parse(args[0])
