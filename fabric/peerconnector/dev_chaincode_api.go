@@ -144,7 +144,7 @@ func (cc DevChaincodeAPI) handleTicketCCIssueTx(args ...string) ([]byte, uuid.UU
 		OwnerID:  ownerID,
 		Section:  section,
 		Status:   "issued",
-		TokenID:  tokenID,
+		TokenID:  tokenID.Text(16),
 	}
 
 	ticketBytes, err := json.Marshal(ticket)
@@ -257,12 +257,12 @@ func (cc DevChaincodeAPI) handleEventCCSetEventOnSaleTx(args ...string) ([]byte,
 
 	event.OnSale = true
 
-	eventModifidBytes, err := json.Marshal(event)
+	eventModifiedBytes, err := json.Marshal(event)
 	if err != nil {
 		return nil, uuid.Nil, nil, err
 	}
 
-	return eventModifidBytes, eventID, nil, nil
+	return eventModifiedBytes, eventID, nil, nil
 }
 
 func (cc DevChaincodeAPI) handleEventCCAddSectionTx(args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
