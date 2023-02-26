@@ -33,19 +33,19 @@ func NewTickenTicketCaller(pc peerconnector.PeerConnector, channelName string) (
 	return caller, nil
 }
 
-func (caller *TickenTicketCaller) IssueTicket(ticketID, eventID, owner uuid.UUID, section string, tokenID *big.Int) (*chainmodels.Ticket, error) {
+func (caller *TickenTicketCaller) IssueTicket(ticketID, eventID, owner uuid.UUID, section string, tokenID *big.Int) (*chainmodels.Ticket, string, error) {
 	function := consts.TicketCCIssueFunction
-	data, _, err := caller.submiter.Submit(function, ticketID.String(), eventID.String(), section, owner.String(), tokenID.String())
+	data, txID, err := caller.submiter.Submit(function, ticketID.String(), eventID.String(), section, owner.String(), tokenID.String())
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	var ticket chainmodels.Ticket
 	if err := json.Unmarshal(data, &ticket); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return &ticket, nil
+	return &ticket, txID, nil
 }
 
 func (caller *TickenTicketCaller) GetTicket(ticketID uuid.UUID) (*chainmodels.Ticket, error) {
