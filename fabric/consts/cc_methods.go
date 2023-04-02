@@ -7,8 +7,9 @@ const (
 )
 
 const (
-	EventCCCreateFunction         = "Create"
-	EventCCGetEventFunction       = "GetEvent"
-	EventCCAddSectionFunction     = "AddSection"
-	EventCCSetEventOnSaleFunction = "SetEventOnSale"
+	EventCCCreateFunction     = "Create"
+	EventCCGetEventFunction   = "GetEvent"
+	EventCCAddSectionFunction = "AddSection"
+	EventCCStartSaleFunction  = "StartSale"
+	EventCCStartEventFunction = "StartEvent"
 )

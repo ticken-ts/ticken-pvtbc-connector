@@ -100,8 +100,10 @@ func (cc DevChaincodeAPI) handleEventCCAPI(name string, args ...string) ([]byte,
 		return cc.handleEventCCAddSectionTx(args...)
 	case consts.EventCCGetEventFunction:
 		return cc.handleEventCCGetEventTx(args...)
-	case consts.EventCCSetEventOnSaleFunction:
-		return cc.handleEventCCSetEventOnSaleTx(args...)
+	case consts.EventCCStartSaleFunction:
+		return cc.handleEventCCStartSaleTx(args...)
+	case consts.EventCCStartEventFunction:
+		return cc.handleEventCCStartEventTx(args...)
 
 	default:
 		return nil, uuid.Nil, nil, fmt.Errorf("function not found")
@@ -223,8 +225,7 @@ func (cc DevChaincodeAPI) handleEventCCCreateTx(args ...string) ([]byte, uuid.UU
 		Name:     name,
 		Date:     date,
 		Sections: make([]*chainmodels.Section, 0),
-
-		OnSale: false,
+		Status:   chainmodels.EventStatusDraft,
 
 		MSPID:             cc.ctxMSPID,
 		OrganizerUsername: cc.ctxOrganizerUsername,
@@ -237,7 +238,7 @@ func (cc DevChaincodeAPI) handleEventCCCreateTx(args ...string) ([]byte, uuid.UU
 	return eventBytes, eventID, notification, nil
 }
 
-func (cc DevChaincodeAPI) handleEventCCSetEventOnSaleTx(args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
+func (cc DevChaincodeAPI) handleEventCCStartSaleTx(args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
 	if len(args) != 1 {
 		return nil, uuid.Nil, nil, fmt.Errorf("wrong arg numbers: expected %d, obtained %d", 1, len(args))
 	}
@@ -255,7 +256,35 @@ func (cc DevChaincodeAPI) handleEventCCSetEventOnSaleTx(args ...string) ([]byte,
 		return nil, uuid.Nil, nil, err
 	}
 
-	event.OnSale = true
+	event.Status = chainmodels.EventStatusOnSale
+
+	eventModifiedBytes, err := json.Marshal(event)
+	if err != nil {
+		return nil, uuid.Nil, nil, err
+	}
+
+	return eventModifiedBytes, eventID, nil, nil
+}
+
+func (cc DevChaincodeAPI) handleEventCCStartEventTx(args ...string) ([]byte, uuid.UUID, *client.ChaincodeEvent, error) {
+	if len(args) != 1 {
+		return nil, uuid.Nil, nil, fmt.Errorf("wrong arg numbers: expected %d, obtained %d", 1, len(args))
+	}
+
+	eventID, _ := uuid.Parse(args[0])
+
+	eventBytes, exists := cc.storedElements[eventElementName][eventID]
+	if !exists {
+		return nil, uuid.Nil, nil, fmt.Errorf("event with id %s not exists", eventID)
+	}
+
+	var event chainmodels.Event
+	err := json.Unmarshal(eventBytes, &event)
+	if err != nil {
+		return nil, uuid.Nil, nil, err
+	}
+
+	event.Status = chainmodels.EventStatusRunning
 
 	eventModifiedBytes, err := json.Marshal(event)
 	if err != nil {

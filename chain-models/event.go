@@ -5,15 +5,32 @@ import (
 	"time"
 )
 
-type Event struct {
-	EventID  uuid.UUID  `json:"event_id"`
-	Name     string     `json:"name"`
-	Date     time.Time  `json:"date"`
-	Sections []*Section `json:"sections"`
+type EventStatus string
 
-	// indicates if the event is currently
-	// available to sell tickets
-	OnSale bool `json:"on_sale"`
+const (
+	// EventStatusDraft is the status of an
+	// event that is not yet published
+	EventStatusDraft EventStatus = "draft"
+
+	// EventStatusOnSale is the status of an
+	// event that is published for sale
+	EventStatusOnSale EventStatus = "on_sale"
+
+	// EventStatusRunning is the status of an
+	// event that is currently happening
+	EventStatusRunning EventStatus = "running"
+
+	// EventStatusFinished is the status of an
+	// event that has finished
+	EventStatusFinished EventStatus = "finished"
+)
+
+type Event struct {
+	EventID  uuid.UUID   `json:"event_id"`
+	Name     string      `json:"name"`
+	Date     time.Time   `json:"date"`
+	Sections []*Section  `json:"sections"`
+	Status   EventStatus `json:"status"`
 
 	// identity of the event and auditory
 	MSPID             string `json:"msp_id"`
