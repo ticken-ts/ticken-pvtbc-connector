@@ -10,6 +10,7 @@ const (
 	EventCCCreateFunction     = "Create"
 	EventCCGetEventFunction   = "GetEvent"
 	EventCCAddSectionFunction = "AddSection"
-	EventCCStartSaleFunction  = "StartSale"
-	EventCCStartEventFunction = "StartEvent"
+	EventCCSellFunction       = "Sell"
+	EventCCStartFunction      = "Start"
+	EventCCFinishFunction     = "Finish"
 )

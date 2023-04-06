@@ -70,14 +70,20 @@ func (caller *TickenEventCaller) AddSection(eventID uuid.UUID, name string, tota
 	return section, txID, nil
 }
 
-func (caller *TickenEventCaller) StartSale(eventID uuid.UUID) (string, error) {
-	function := consts.EventCCStartSaleFunction
+func (caller *TickenEventCaller) Sell(eventID uuid.UUID) (string, error) {
+	function := consts.EventCCSellFunction
 	_, txID, err := caller.submiter.Submit(function, eventID.String())
 	return txID, err
 }
 
-func (caller *TickenEventCaller) StartEvent(eventID uuid.UUID) (string, error) {
-	function := consts.EventCCStartEventFunction
+func (caller *TickenEventCaller) Start(eventID uuid.UUID) (string, error) {
+	function := consts.EventCCStartFunction
+	_, txID, err := caller.submiter.Submit(function, eventID.String())
+	return txID, err
+}
+
+func (caller *TickenEventCaller) Finish(eventID uuid.UUID) (string, error) {
+	function := consts.EventCCFinishFunction
 	_, txID, err := caller.submiter.Submit(function, eventID.String())
 	return txID, err
 }
