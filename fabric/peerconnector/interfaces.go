@@ -10,10 +10,7 @@ type PeerConnector interface {
 	Connect(peerEndpoint string, gatewayPeer string, tlsCertPath string) error
 	ConnectWithRawTlsCert(peerEndpoint string, gatewayPeer string, tlsCert []byte) error
 	GetChaincode(channelName string, chaincodeName string) (Chaincode, error)
-
-	GetChaincodeNotificationsChannel(
-		ctx context.Context, channelName string, chaincodeName string,
-	) (<-chan *client.ChaincodeEvent, error)
+	GetChaincodeNotificationsChannel(ctx context.Context, channelName string, chaincodeName string) (<-chan *client.ChaincodeEvent, error)
 }
 
 type Chaincode interface {

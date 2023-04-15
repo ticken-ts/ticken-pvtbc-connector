@@ -1,0 +1,34 @@
+name: Eth Connector | Update
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Git Config
+        run: |
+          git config --global user.name "facundotorraca"
+          git config --global user.email "ftorraca@fi.uba.ar"
+
+      - name: Get Latest Tag
+        id: latest_tag
+        run: echo "last_tag=$(git describe --tags --abbrev=0 || echo 'v0.0.0')" >> $GITHUB_OUTPUT
+
+      - name: Create New Tag
+        id: tag
+        run: |
+          echo "curr_tag=$(echo ${{ steps.latest_tag.outputs.last_tag }} | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')" >> $GITHUB_OUTPUT
+
+      - name: Push New Tag
+        run: |
+          git tag ${{ steps.tag.outputs.curr_tag }}
+          git push origin ${{ steps.tag.outputs.curr_tag }}
