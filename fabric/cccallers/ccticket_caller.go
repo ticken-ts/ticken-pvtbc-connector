@@ -2,12 +2,13 @@ package cccallers
 
 import (
 	"encoding/json"
+	"math/big"
+
 	"github.com/google/uuid"
 	chainmodels "github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/ccclient"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/consts"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
-	"math/big"
 )
 
 type TickenTicketCaller struct {
@@ -71,6 +72,11 @@ func (caller *TickenTicketCaller) GetSectionTickets(eventID uuid.UUID, section s
 	data, _, err := caller.submiter.Submit(function, eventID.String(), section)
 	if err != nil {
 		return nil, err
+	}
+
+	// returns nil when there are not tickets in section
+	if data == nil {
+		return make([]*chainmodels.Ticket, 0), nil
 	}
 
 	var sectionTickets []*chainmodels.Ticket
